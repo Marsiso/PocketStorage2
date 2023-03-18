@@ -1,4 +1,5 @@
 using IdentityServer.Data;
+using IdentityServer.Data.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -107,6 +108,10 @@ builder.Services.AddOpenIddict()
         options.UseAspNetCore();
     });
 
+// Register the worker responsible of seeding the database with the sample clients
+// Note in a real world application, this step should be part of a setup script
+builder.Services.AddHostedService<Worker>();
+builder.Services.AddHostedService<UserSeed>();
 #endregion OpenId
 
 builder.Services.AddAuthentication();

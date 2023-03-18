@@ -20,4 +20,8 @@
     <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="4.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Migrations\" />
+  </ItemGroup>
+
 </Project>
