@@ -1,4 +1,5 @@
 ﻿using OpenIddict.Abstractions;
+using System.Globalization;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace IdentityServer.Data.Seed;
@@ -39,9 +40,36 @@ public sealed class Worker : IHostedService
                     Permissions.ResponseTypes.Code,
                     Permissions.Scopes.Email,
                     Permissions.Scopes.Profile,
-                    Permissions.Scopes.Roles
+                    Permissions.Prefixes.Scope + "apiBff"
                 },
                 Requirements = { Requirements.Features.ProofKeyForCodeExchange }
+            });
+        }
+        #endregion
+
+        #region Resource_Bff
+        string resourceBff = "Resource_Bff";
+        if (await manager.FindByClientIdAsync(resourceBff) == null)
+        {
+            var descriptor = new OpenIddictApplicationDescriptor
+            {
+                ClientId = resourceBff,
+                ClientSecret = "Resource-Bff-Secret",
+                Permissions = { Permissions.Endpoints.Introspection }
+            };
+
+            await manager.CreateAsync(descriptor);
+        }
+
+        var scopeManager = scope.ServiceProvider.GetRequiredService<IOpenIddictScopeManager>();
+        if (await scopeManager.FindByNameAsync("apiBff") == null)
+        {
+            await scopeManager.CreateAsync(new OpenIddictScopeDescriptor
+            {
+                DisplayName = "BFF API Access",
+                DisplayNames = { [CultureInfo.GetCultureInfo("en-US")] = "BFF APP" },
+                Name = "apiBff",
+                Resources = { resourceBff }
             });
         }
         #endregion

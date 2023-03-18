@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IdentityServer.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230318113940_CreateOpenId")]
+    [Migration("20230318154216_CreateOpenId")]
     partial class CreateOpenId
     {
         /// <inheritdoc />
