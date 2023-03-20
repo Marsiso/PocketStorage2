@@ -1,17 +1,29 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar">
         <NavMenu />
     </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+    <div class="main">
+        <div class="top-row px-4 auth">
+            <AuthorizeView>
+                <Authorized>
+                    <strong>Hello, @context?.User?.Identity?.Name!</strong>
+                    <form method="post" action="api/Account/Logout">
+                        <AntiForgeryTokenInput/>
+                        <button class="btn btn-link" type="submit">Sign out</button>
+                    </form>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="api/Account/Login">Log in</a>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+        <div class="content px-4">
+                @Body
+        </div>
+    </div>
 </div>

@@ -1,0 +1,11 @@
+﻿global using Client;
+global using Client.Services;
+global using Client.Services.Abstractions;
+global using Domain;
+global using Infrastructure.Security.Authorization;
+global using Infrastructure.Security.XSS;
+global using Microsoft.AspNetCore.Components.Authorization;
+global using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+global using Microsoft.Extensions.DependencyInjection.Extensions;
+global using Microsoft.JSInterop;
+global using System.Net.Http.Headers;

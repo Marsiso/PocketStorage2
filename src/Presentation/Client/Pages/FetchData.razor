@@ -1,6 +1,7 @@
-﻿@page "/fetchdata"
-@using Domain;
-@inject HttpClient Http
+﻿@page "/FetchData"
+@using Microsoft.AspNetCore.Authorization;
+@inject IAntiforgeryHttpClientFactory httpClientFactory
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Weather forecast</PageTitle>
 
@@ -42,6 +43,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+        var client = await httpClientFactory.CreateClientAsync();
+
+        forecasts = await client.GetFromJsonAsync<WeatherForecast[]>("api/WeatherForecast");
     }
 }

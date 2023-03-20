@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Domain.Identity.Defaults;
+using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace IdentityServer.Data.Seed;
@@ -25,8 +26,9 @@ public sealed class UserSeed : IHostedService
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
             await SeedRoleSystemAdmin(roleManager);
-            await SeedRoleBasicUser(roleManager);
-            await AddUser(userManager);
+            await SeedRoleTenantAdmin(roleManager);
+            await SeedRoleDefaultAccess(roleManager);
+            await AddUsers(userManager);
         }
     }
 
@@ -35,12 +37,13 @@ public sealed class UserSeed : IHostedService
         return Task.CompletedTask;
     }
 
-    private async Task AddUser(UserManager<IdentityUser> userManager)
+    private async Task AddUsers(UserManager<IdentityUser> userManager)
     {
+        #region System Administrator
         var sysuser = new IdentityUser
         {
-            Email = "sysadmin@utb.dev",
-            UserName = "sysadmin@utb.dev",
+            Email = DefaultConstants.DefaultSystemAdminEmail,
+            UserName = DefaultConstants.DefaultSystemAdminEmail,
             // FirstName = "System.Administrator",
             EmailConfirmed = true,
             // IsActive = true
@@ -49,29 +52,142 @@ public sealed class UserSeed : IHostedService
         var superUserInDb = await userManager.FindByEmailAsync(sysuser.Email);
         if (superUserInDb == null)
         {
-            var rs = await userManager.CreateAsync(sysuser, DefaultConstants.DefaultPassword);
-            if (!rs.Succeeded)
+            var result = await userManager.CreateAsync(sysuser, DefaultConstants.DefaultSystemAdminPassword);
+            if (!result.Succeeded)
             {
-                foreach (var error in rs.Errors)
+                foreach (var error in result.Errors)
                 {
                     _logger.LogError(error.Description);
                 }
             }
 
-            var result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.SystemAdmin);
-            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.TenantAdmin);
+            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.SystemAdmin);
             if (result.Succeeded)
             {
-                _logger.LogInformation("Seeded Default Sysadmin User");
+                _logger.LogInformation("Seed " + DefaultConstants.SystemAdministratorDesc + " User");
             }
             else
             {
-                foreach (var error in rs.Errors)
+                foreach (var error in result.Errors)
+                {
+                    _logger.LogError(error.Description);
+                }
+            }
+
+            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.TenantAdmin);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Seed " + DefaultConstants.TenantAdministratorDesc + " User");
+            }
+            else
+            {
+                foreach (var error in result.Errors)
+                {
+                    _logger.LogError(error.Description);
+                }
+            }
+
+            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.DefaultAccess);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Seed " + DefaultConstants.DefaultAccessDesc + " User");
+            }
+            else
+            {
+                foreach (var error in result.Errors)
                 {
                     _logger.LogError(error.Description);
                 }
             }
         }
+        #endregion
+
+        #region Tenant Administrator
+        var tenantuser = new IdentityUser
+        {
+            Email = DefaultConstants.DefaultTenantAdminEmail,
+            UserName = DefaultConstants.DefaultTenantAdminEmail,
+            // FirstName = "System.Administrator",
+            EmailConfirmed = true,
+            // IsActive = true
+        };
+
+        var tenantUserInDb = await userManager.FindByEmailAsync(tenantuser.Email);
+        if (tenantUserInDb == null)
+        {
+            var result = await userManager.CreateAsync(tenantuser, DefaultConstants.DefaultTenantAdminPassword);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    _logger.LogError(error.Description);
+                }
+            }
+
+            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.TenantAdmin);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Seed " + DefaultConstants.TenantAdministratorDesc + " User");
+            }
+            else
+            {
+                foreach (var error in result.Errors)
+                {
+                    _logger.LogError(error.Description);
+                }
+            }
+
+            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.DefaultAccess);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Seed " + DefaultConstants.DefaultAccessDesc + " User");
+            }
+            else
+            {
+                foreach (var error in result.Errors)
+                {
+                    _logger.LogError(error.Description);
+                }
+            }
+        }
+        #endregion
+
+        #region Default
+        var defaultuser = new IdentityUser
+        {
+            Email = DefaultConstants.DefaultAccessEmail,
+            UserName = DefaultConstants.DefaultAccessEmail,
+            // FirstName = "System.Administrator",
+            EmailConfirmed = true,
+            // IsActive = true
+        };
+
+        var defaultUserInDb = await userManager.FindByEmailAsync(defaultuser.Email);
+        if (defaultUserInDb == null)
+        {
+            var result = await userManager.CreateAsync(defaultuser, DefaultConstants.DefaultAccessPassword);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    _logger.LogError(error.Description);
+                }
+            }
+
+            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.DefaultAccess);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Seed " + DefaultConstants.DefaultAccessDesc + " User");
+            }
+            else
+            {
+                foreach (var error in result.Errors)
+                {
+                    _logger.LogError(error.Description);
+                }
+            }
+        }
+        #endregion
     }
 
     private async Task<IdentityRole> AddUser(RoleManager<IdentityRole> roleManager, string roleName, CancellationToken cancellationToken = default)
@@ -117,7 +233,7 @@ public sealed class UserSeed : IHostedService
         }
     }
 
-    private static async Task SeedRoleBasicUser(RoleManager<IdentityRole> roleManager)
+    private static async Task SeedRoleTenantAdmin(RoleManager<IdentityRole> roleManager)
     {
         var adminRole = await roleManager.FindByNameAsync(DefaultRoles.TenantAdmin);
         if (adminRole == null)
@@ -151,27 +267,35 @@ public sealed class UserSeed : IHostedService
         }
     }
 
-    public static class DefaultPermissions
+    private static async Task SeedRoleDefaultAccess(RoleManager<IdentityRole> roleManager)
     {
-        internal static readonly string View = "View";
-        internal static readonly string Edit = "Edit";
-        internal static readonly string Delete = "Delete";
-        internal static readonly string Create = "Create";
-    }
+        var defaultAccessRole = await roleManager.FindByNameAsync(DefaultRoles.DefaultAccess);
+        if (defaultAccessRole == null)
+        {
+            var role = new IdentityRole
+            {
+                Name = DefaultRoles.DefaultAccess,
+                // Description = DefaultRole.TenantAdmin,
+                // TenantId = tenant.Id,
+                // IsActive = true
+            };
+            await roleManager.CreateAsync(role);
+            defaultAccessRole = role;
+        }
 
-    public static class DefaultRoles
-    {
-        internal static readonly string SystemAdmin = "SystemAdministrator";
-        internal static readonly string TenantAdmin = "TenantAdministrator";
-    }
+        var allClaims = await roleManager.GetClaimsAsync(defaultAccessRole);
 
-    public static class DefaultConstants
-    {
-        public const string SysAdminRole = "SystemAdministrator";
-        public const string SysAdminDesc = "System Administrator";
-        public const string BasicRole = "Basic";
-        public const string UserRole = "User";
-        public const string DefaultPassword = "Pass123$SystemAdmin";
-        public const string DefaultTenantAdminPassword = "Pass123$TenantAdmin";
+        var defaultPermissions = new List<string>()
+        {
+            DefaultPermissions.View
+        };
+
+        foreach (var permission in defaultPermissions)
+        {
+            if (!allClaims.Any(claim => claim.Type == "Permission" && claim.Value == permission))
+            {
+                await roleManager.AddClaimAsync(defaultAccessRole, new Claim("Permission", permission));
+            }
+        }
     }
 }

@@ -1,58 +1,96 @@
-using OpenIddict.Validation.AspNetCore;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using Server.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddAuthentication(options =>
+var services = builder.Services;
+var configuration = builder.Configuration;
+var env = builder.Environment;
+var openIDConnectSettings = builder.Configuration.GetSection("OpenIDConnectSettings");
+
+services.AddAntiforgery(options =>
 {
-    options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
-    options.DefaultScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+    options.HeaderName = AntiforgeryDefaults.HeaderName;
+    options.Cookie.Name = AntiforgeryDefaults.CookieName;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
-#region OpenID
-builder.Services
-    .AddOpenIddict()
-    .AddValidation(options =>
+services.AddHttpClient();
+services.AddOptions();
+
+services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+})
+.AddOpenIdConnect(options =>
+{
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.Authority = openIDConnectSettings["Authority"];
+    options.ClientId = openIDConnectSettings["ClientId"];
+    options.ClientSecret = openIDConnectSettings["ClientSecret"];
+    options.RequireHttpsMetadata = true;
+    options.ResponseType = "code";
+    options.UsePkce = true;
+    options.Scope.Add("profile");
+    options.Scope.Add("email");
+    options.Scope.Add("roles");
+    options.Scope.Add("offline_access");
+    options.SaveTokens = true;
+    options.GetClaimsFromUserInfoEndpoint = true;
+    options.RefreshInterval = TimeSpan.FromMinutes(1);
+    options.AutomaticRefreshInterval = TimeSpan.FromMinutes(5);
+    options.AccessDeniedPath = "/";
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.SetIssuer("https://localhost:7188/");
-        options.AddAudiences("Resource_Bff");
+        NameClaimType = "name"
+    };
+});
 
-        options.UseIntrospection();
-        options.SetClientId("Resource_Bff");
-        options.SetClientSecret("Resource-Bff-Secret");
+services.AddControllersWithViews(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
 
-        options.UseSystemNetHttp();
-        options.UseAspNetCore();
-    });
-#endregion
-
-builder.Services.AddAuthorization();
-builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
+services.AddRazorPages().AddMvcOptions(options =>
+{
+    var policy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+    options.Filters.Add(new AuthorizeFilter(policy));
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (env.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseWebAssemblyDebugging();
 }
 else
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
 }
+
+app.UseSecurityHeaders(SecurityHeaders.GetHeaderPolicyCollection(env.IsDevelopment(), configuration["OpenIDConnectSettings:Authority"]!));
 
 app.UseHttpsRedirection();
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
+
 app.UseRouting();
+
+app.UseNoUnauthorizedRedirect("/api");
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapRazorPages();
 app.MapControllers();
-app.MapFallbackToFile("index.html");
+app.MapNotFound("/api/{**segment}");
+app.MapFallbackToPage("/_Host");
 
 app.Run();

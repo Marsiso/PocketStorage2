@@ -1,5 +1,4 @@
 ﻿using OpenIddict.Abstractions;
-using System.Globalization;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace IdentityServer.Data.Seed;
@@ -18,17 +17,17 @@ public sealed class Worker : IHostedService
         using var scope = _serviceProvider.CreateScope();
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-        #region Postman
-        string postmanClient = "PostManClient";
-        if (await manager.FindByClientIdAsync(postmanClient) == null)
+        #region BlazorWasm
+        if (await manager.FindByClientIdAsync("BlazorWasmClient") == null)
         {
             await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
-                ClientId = postmanClient,
-                ClientSecret = "PostMan-Secret",
+                ClientId = "BlazorWasmClient",
+                ClientSecret = "BlazorWasmClient-Secret",
                 ConsentType = ConsentTypes.Explicit,
-                DisplayName = "Postman UI Application",
-                RedirectUris = { new Uri("https://oauth.pstmn.io/v1/callback") },
+                DisplayName = "Blazor WebAssembly Application",
+                RedirectUris = { new Uri("https://localhost:5001/signin-oidc"), new Uri("https://localhost:44132/signin-oidc") },
+                PostLogoutRedirectUris = { new Uri("https://localhost:5001/signout-callback-oidc"), new Uri("https://localhost:44132/signout-callback-oidc") },
                 Permissions =
                 {
                     Permissions.Endpoints.Authorization,
@@ -40,36 +39,10 @@ public sealed class Worker : IHostedService
                     Permissions.ResponseTypes.Code,
                     Permissions.Scopes.Email,
                     Permissions.Scopes.Profile,
-                    Permissions.Prefixes.Scope + "apiBff"
+                    Permissions.Scopes.Roles,
+                    Permissions.Prefixes.Scope + "offline_access"
                 },
                 Requirements = { Requirements.Features.ProofKeyForCodeExchange }
-            });
-        }
-        #endregion
-
-        #region Resource_Bff
-        string resourceBff = "Resource_Bff";
-        if (await manager.FindByClientIdAsync(resourceBff) == null)
-        {
-            var descriptor = new OpenIddictApplicationDescriptor
-            {
-                ClientId = resourceBff,
-                ClientSecret = "Resource-Bff-Secret",
-                Permissions = { Permissions.Endpoints.Introspection }
-            };
-
-            await manager.CreateAsync(descriptor);
-        }
-
-        var scopeManager = scope.ServiceProvider.GetRequiredService<IOpenIddictScopeManager>();
-        if (await scopeManager.FindByNameAsync("apiBff") == null)
-        {
-            await scopeManager.CreateAsync(new OpenIddictScopeDescriptor
-            {
-                DisplayName = "BFF API Access",
-                DisplayNames = { [CultureInfo.GetCultureInfo("en-US")] = "BFF APP" },
-                Name = "apiBff",
-                Resources = { resourceBff }
             });
         }
         #endregion

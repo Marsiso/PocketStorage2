@@ -17,8 +17,6 @@ public sealed class UserInfoController : BaseWebController<UserInfoController>
         _userManager = userManager;
     }
 
-    //
-    // GET: /api/userinfo
     [Authorize(AuthenticationSchemes = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)]
     [HttpGet("~/connect/userinfo"), HttpPost("~/connect/userinfo"), Produces("application/json")]
     public async Task<IActionResult> Userinfo()

@@ -1,13 +1,12 @@
 using Domain;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Server.Controllers;
 
-[Authorize]
+[ValidateAntiForgeryToken]
+[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SystemAdministrator")]
 [ApiController]
-[Route("[controller]")]
-public class WeatherForecastController : ControllerBase
+[Route("api/[controller]")]
+public sealed class WeatherForecastController : ControllerBase
 {
     private static readonly string[] Summaries = new[]
     {
