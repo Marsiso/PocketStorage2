@@ -123,6 +123,11 @@ builder.Services.AddAuthentication()
     {
         options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
         options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    })
+    .AddFacebook(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Facebook:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:Facebook:ClientSecret"]!;
     });
 
 builder.Services.AddControllersWithViews();
