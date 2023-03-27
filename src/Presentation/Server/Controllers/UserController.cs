@@ -2,25 +2,22 @@
 
 namespace Server.Controllers;
 
-// orig src https://github.com/berhir/BlazorWebAssemblyCookieAuth
-[Route("api/[controller]")]
+// original source https://github.com/berhir/BlazorWebAssemblyCookieAuth
 [ApiController]
 public sealed class UserController : ControllerBase
 {
-    [HttpGet]
+    [HttpGet("~/api/user")]
     [AllowAnonymous]
-    public IActionResult GetCurrentUser() => Ok(CreateUserInfo(User));
-
-    private ApplicationUserInfo CreateUserInfo(ClaimsPrincipal claimsPrincipal)
+    public IActionResult GetCurrentUser()
     {
-        if (!claimsPrincipal?.Identity?.IsAuthenticated ?? true)
+        if (!User?.Identity?.IsAuthenticated ?? true)
         {
-            return ApplicationUserInfo.Anonymous;
+            return Ok(ApplicationUserInfo.Anonymous);
         }
 
         var userInfo = new ApplicationUserInfo { IsAuthenticated = true };
 
-        if (claimsPrincipal?.Identity is ClaimsIdentity claimsIdentity)
+        if (User?.Identity is ClaimsIdentity claimsIdentity)
         {
             userInfo.NameClaimType = claimsIdentity.NameClaimType;
             userInfo.RoleClaimType = claimsIdentity.RoleClaimType;
@@ -31,20 +28,24 @@ public sealed class UserController : ControllerBase
             userInfo.RoleClaimType = ClaimTypes.Role;
         }
 
-        if (claimsPrincipal?.Claims?.Any() ?? false)
+        if (User?.Claims?.Any() ?? false)
         {
-            // Add just the name claim
-            var claims = claimsPrincipal
-                .FindAll(userInfo.NameClaimType)
-                .Select(claim => new ApplicationClaimValue(userInfo.NameClaimType, claim.Value))
-                .ToList();
-
-            // Uncomment this code if you want to send additional claims to the client.
-            //var claims = claimsPrincipal.Claims.Select(u => new ClaimValue(u.Type, u.Value)).ToList();
+            IList<ApplicationClaimValue> claims = new List<ApplicationClaimValue>();
+            foreach (var claim in User.Claims)
+            {
+                if (claim.Type.Equals(userInfo.NameClaimType, StringComparison.OrdinalIgnoreCase))
+                {
+                    claims.Add(new ApplicationClaimValue(userInfo.NameClaimType, claim.Value));
+                }
+                else if (claim.Type.Equals(userInfo.RoleClaimType, StringComparison.OrdinalIgnoreCase))
+                {
+                    claims.Add(new ApplicationClaimValue(userInfo.RoleClaimType, claim.Value));
+                }
+            }
 
             userInfo.Claims = claims;
         }
 
-        return userInfo;
+        return Ok(userInfo);
     }
 }

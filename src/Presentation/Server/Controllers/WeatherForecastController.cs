@@ -5,7 +5,6 @@ namespace Server.Controllers;
 [ValidateAntiForgeryToken]
 [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SystemAdministrator")]
 [ApiController]
-[Route("api/[controller]")]
 public sealed class WeatherForecastController : ControllerBase
 {
     private static readonly string[] Summaries = new[]
@@ -20,7 +19,7 @@ public sealed class WeatherForecastController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet]
+    [HttpGet("~/api/weatherForecast")]
     public IEnumerable<WeatherForecast> Get()
     {
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast

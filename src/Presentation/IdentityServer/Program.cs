@@ -58,10 +58,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     // Cookie settings
     options.Cookie.HttpOnly = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
 
-    options.LoginPath = "/Identity/Account/Login";
-    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    options.LoginPath = "/identity/account/login";
+    options.AccessDeniedPath = "/identity/account/accessDenied";
     options.SlidingExpiration = true;
 });
 
@@ -77,7 +77,7 @@ builder.Services.AddOpenIddict()
         options.SetAuthorizationEndpointUris("/connect/authorize");
         options.SetLogoutEndpointUris("/connect/logout");
         options.SetTokenEndpointUris("/connect/token");
-        options.SetUserinfoEndpointUris("/connect/userinfo");
+        options.SetUserinfoEndpointUris("/connect/userInfo");
         options.SetIntrospectionEndpointUris("/connect/introspect");
         options.SetVerificationEndpointUris("/connect/verify");
 

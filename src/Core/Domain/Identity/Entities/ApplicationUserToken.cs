@@ -2,6 +2,6 @@
 
 namespace Domain.Identity.Entities;
 
-public class ApplicationUserToken : IdentityUserToken<Guid>
+public sealed class ApplicationUserToken : IdentityUserToken<Guid>
 {
 }

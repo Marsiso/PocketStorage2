@@ -2,6 +2,6 @@
 
 namespace Domain.Identity.Entities;
 
-public class ApplicationUserRole : IdentityUserRole<Guid>
+public sealed class ApplicationUserRole : IdentityUserRole<Guid>
 {
 }

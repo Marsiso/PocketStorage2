@@ -44,8 +44,8 @@ services.AddAuthentication(options =>
     options.Scope.Add("offline_access");
     options.SaveTokens = true;
     options.GetClaimsFromUserInfoEndpoint = true;
-    options.RefreshInterval = TimeSpan.FromMinutes(1);
-    options.AutomaticRefreshInterval = TimeSpan.FromMinutes(5);
+    options.RefreshInterval = TimeSpan.FromMinutes(3);
+    options.AutomaticRefreshInterval = TimeSpan.FromMinutes(10);
     options.AccessDeniedPath = "/";
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -91,6 +91,7 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
 app.MapNotFound("/api/{**segment}");
+app.MapUnauthorized("/api/{**segment}");
 app.MapFallbackToPage("/_Host");
 
 app.Run();

@@ -2,6 +2,8 @@
 global using Client.Services;
 global using Client.Services.Abstractions;
 global using Domain;
+global using Domain.Identity.Defaults;
+global using Domain.Identity.Entities;
 global using Infrastructure.Security.Authorization;
 global using Infrastructure.Security.XSS;
 global using Microsoft.AspNetCore.Components.Authorization;

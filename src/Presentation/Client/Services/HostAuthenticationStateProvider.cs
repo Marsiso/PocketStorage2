@@ -58,7 +58,7 @@ public sealed class HostAuthenticationStateProvider : AuthenticationStateProvide
         try
         {
             _logger.LogInformation("{clientBaseAddress}", _client.BaseAddress?.ToString());
-            user = await _client.GetFromJsonAsync<ApplicationUserInfo>("api/User");
+            user = await _client.GetFromJsonAsync<ApplicationUserInfo>("api/user");
         }
         catch (Exception exc)
         {
