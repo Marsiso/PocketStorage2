@@ -20,12 +20,12 @@ builder.Services.AddDbContext<ApplicationDatabaseContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+#region AspNetIdentity
+
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDatabaseContext>()
     .AddDefaultUI()
     .AddDefaultTokenProviders();
-
-#region AspNetIdentity
 
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(1));
 builder.Services.Configure<IdentityOptions>(options =>
@@ -64,7 +64,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/identity/account/accessDenied";
     options.SlidingExpiration = true;
 });
-
 #endregion AspNetIdentity
 
 #region OpenId
@@ -118,7 +117,13 @@ builder.Services.AddHostedService<Worker>();
 builder.Services.AddHostedService<UserSeed>();
 #endregion OpenId
 
-builder.Services.AddAuthentication();
+builder.Services.AddAuthentication()
+    // For further details about Google external login setup in ASP.NET Core see https://learn.microsoft.com/en-us/aspnet/core/security/authentication/social/google-logins?view=aspnetcore-7.0
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    });
 
 builder.Services.AddControllersWithViews();
 

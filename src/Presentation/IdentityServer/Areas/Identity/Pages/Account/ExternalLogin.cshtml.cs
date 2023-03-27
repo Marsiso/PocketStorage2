@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
+using Domain.Identity.Defaults;
 using Domain.Identity.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -80,6 +81,25 @@ public sealed class ExternalLoginModel : PageModel
         [Required]
         [EmailAddress]
         public string Email { get; set; }
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; }
+
+        [DataType(DataType.Text)]
+        [Display(Name = "Middle Name")]
+        public string MiddleName { get; set; }
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; }
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Alias")]
+        public string Alias { get; set; }
     }
 
     public IActionResult OnGet() => RedirectToPage("./Login");
@@ -121,15 +141,24 @@ public sealed class ExternalLoginModel : PageModel
         else
         {
             // If the user does not have an account, then ask the user to create an account.
+            Input = new();
             ReturnUrl = returnUrl;
             ProviderDisplayName = info.ProviderDisplayName;
-            if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+            if (info.Principal.HasClaim(claim => claim.Type == ClaimTypes.Email))
             {
-                Input = new InputModel
-                {
-                    Email = info.Principal.FindFirstValue(ClaimTypes.Email)
-                };
+                Input.Email = info.Principal.FindFirstValue(ClaimTypes.Email);
             }
+
+            if (info.Principal.HasClaim(claim => claim.Type == ClaimTypes.GivenName))
+            {
+                Input.FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName);
+            }
+
+            if (info.Principal.HasClaim(claim => claim.Type == ClaimTypes.Surname))
+            {
+                Input.LastName = info.Principal.FindFirstValue(ClaimTypes.Surname);
+            }
+
             return Page();
         }
     }
@@ -152,34 +181,53 @@ public sealed class ExternalLoginModel : PageModel
             await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
             await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
+            // TODO
+            user.Alias = Input.Alias;
+            user.FirstName = Input.FirstName;
+            user.MiddleName = Input.MiddleName;
+            user.LastName = Input.LastName;
+            if (!_userManager.Options.SignIn.RequireConfirmedAccount)
+            {
+                user.EmailConfirmed = true;
+            }
+
             var result = await _userManager.CreateAsync(user);
             if (result.Succeeded)
             {
-                result = await _userManager.AddLoginAsync(user, info);
+                _logger.LogInformation("User created a new account without password.");
+
+                result = await _userManager.AddToRoleAsync(user, DefaultIdentityRoles.DefaultAccess);
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
+                    _logger.LogInformation("Newly created user added to default access role.");
 
-                    var userId = await _userManager.GetUserIdAsync(user);
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                    var callbackUrl = Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new { area = "Identity", userId = userId, code = code },
-                        protocol: Request.Scheme);
-
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-                    // If account confirmation is required, we need to show the link if we don't have a real email sender
-                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                    result = await _userManager.AddLoginAsync(user, info);
+                    if (result.Succeeded)
                     {
-                        return RedirectToPage("./RegisterConfirmation", new { Email = Input.Email });
-                    }
+                        _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
 
-                    await _signInManager.SignInAsync(user, isPersistent: false, info.LoginProvider);
-                    return LocalRedirect(returnUrl);
+                        var userId = await _userManager.GetUserIdAsync(user);
+                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                        var callbackUrl = Url.Page(
+                            "/account/confirmEmail",
+                            pageHandler: null,
+                            values: new { area = "Identity", userId = userId, code = code },
+                            protocol: Request.Scheme);
+
+                        await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                            $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+                        // If account confirmation is required, we need to show the link if we don't have a real email sender
+                        if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                        {
+                            return RedirectToPage("./RegisterConfirmation", new { Email = Input.Email });
+                        }
+
+                        await _signInManager.SignInAsync(user, isPersistent: false, info.LoginProvider);
+
+                        return LocalRedirect(returnUrl);
+                    }
                 }
             }
             foreach (var error in result.Errors)

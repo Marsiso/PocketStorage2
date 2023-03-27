@@ -130,11 +130,14 @@ public sealed class RegisterModel : PageModel
             if (user != null)
             {
                 // TODO
-                user.EmailConfirmed = true;
+                user.Alias = Input.Alias;
                 user.FirstName = Input.FirstName;
                 user.MiddleName = Input.MiddleName;
                 user.LastName = Input.LastName;
-                user.Alias = Input.Alias;
+                if (!_userManager.Options.SignIn.RequireConfirmedAccount)
+                {
+                    user.EmailConfirmed = true;
+                }
             }
 
 

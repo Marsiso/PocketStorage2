@@ -20,8 +20,28 @@
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
             <div class="form-floating mb-3">
                 <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="Please enter your email."/>
-                <label asp-for="Input.Email" class="form-label"></label>
+                <label asp-for="Input.Email" class="form-label">Email</label>
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Alias" class="form-control" autocomplete="nickname" aria-required="true" placeholder="Please enter your alias" />
+                <label asp-for="Input.Alias">Alias</label>
+                <span asp-validation-for="Input.Alias" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.FirstName" class="form-control" autocomplete="given-name" aria-required="true" placeholder="Please enter your given name" />
+                <label asp-for="Input.FirstName">Given Name</label>
+                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.MiddleName" class="form-control" autocomplete="additional-name" aria-required="true" placeholder="Please enter your additional name" />
+                <label asp-for="Input.MiddleName">Middle Name</label>
+                <span asp-validation-for="Input.MiddleName" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.LastName" class="form-control" autocomplete="family-name" aria-required="true" placeholder="Please enter your family name" />
+                <label asp-for="Input.LastName">Family Name</label>
+                <span asp-validation-for="Input.LastName" class="text-danger"></span>
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </form>
