@@ -1,16 +1,16 @@
-﻿namespace Domain.Identity.Models;
+﻿namespace Domain.Identity.Entities;
 
-public sealed class ClaimValue
+public sealed class ApplicationClaimValue
 {
     public string Type { get; set; } = string.Empty;
 
     public string Value { get; set; } = string.Empty;
 
-    public ClaimValue()
+    public ApplicationClaimValue()
     {
     }
 
-    public ClaimValue(string type, string value)
+    public ApplicationClaimValue(string type, string value)
     {
         Type = type;
         Value = value;

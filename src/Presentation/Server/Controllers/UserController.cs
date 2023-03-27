@@ -1,4 +1,4 @@
-﻿using Domain.Identity.Models;
+﻿using Domain.Identity.Entities;
 
 namespace Server.Controllers;
 
@@ -11,14 +11,14 @@ public sealed class UserController : ControllerBase
     [AllowAnonymous]
     public IActionResult GetCurrentUser() => Ok(CreateUserInfo(User));
 
-    private UserInfo CreateUserInfo(ClaimsPrincipal claimsPrincipal)
+    private ApplicationUserInfo CreateUserInfo(ClaimsPrincipal claimsPrincipal)
     {
         if (!claimsPrincipal?.Identity?.IsAuthenticated ?? true)
         {
-            return UserInfo.Anonymous;
+            return ApplicationUserInfo.Anonymous;
         }
 
-        var userInfo = new UserInfo { IsAuthenticated = true };
+        var userInfo = new ApplicationUserInfo { IsAuthenticated = true };
 
         if (claimsPrincipal?.Identity is ClaimsIdentity claimsIdentity)
         {
@@ -36,7 +36,7 @@ public sealed class UserController : ControllerBase
             // Add just the name claim
             var claims = claimsPrincipal
                 .FindAll(userInfo.NameClaimType)
-                .Select(claim => new ClaimValue(userInfo.NameClaimType, claim.Value))
+                .Select(claim => new ApplicationClaimValue(userInfo.NameClaimType, claim.Value))
                 .ToList();
 
             // Uncomment this code if you want to send additional claims to the client.

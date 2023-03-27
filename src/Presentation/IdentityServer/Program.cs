@@ -1,4 +1,5 @@
-using IdentityServer.Data;
+using Domain.Data;
+using Domain.Identity.Entities;
 using IdentityServer.Data.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -8,16 +9,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContext<ApplicationDatabaseContext>(options =>
 {
-    options.UseSqlServer(connectionString);
+    options.UseSqlServer(connectionString, builder => builder.MigrationsAssembly(nameof(IdentityServer)));
     options.UseOpenIddict();
+    options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+    options.EnableServiceProviderCaching();
+    options.UseLoggerFactory(ApplicationDatabaseContext.PropertyAppLoggerFactory);
 });
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>()
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<ApplicationDatabaseContext>()
     .AddDefaultUI()
     .AddDefaultTokenProviders();
 
@@ -66,7 +70,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 #region OpenId
 
 builder.Services.AddOpenIddict()
-    .AddCore(options => options.UseEntityFrameworkCore().UseDbContext<ApplicationDbContext>())
+    .AddCore(options => options.UseEntityFrameworkCore().UseDbContext<ApplicationDatabaseContext>())
     .AddServer(options =>
     {
         // Enable the authorization, logout, token and user info endpoints
@@ -134,7 +138,7 @@ else
 
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
     dbContext.Database.Migrate();
 }
 

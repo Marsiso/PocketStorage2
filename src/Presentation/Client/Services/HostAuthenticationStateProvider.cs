@@ -1,4 +1,4 @@
-﻿using Domain.Identity.Models;
+﻿using Domain.Identity.Entities;
 using Microsoft.AspNetCore.Components;
 using System.Net.Http.Json;
 using System.Security.Claims;
@@ -53,12 +53,12 @@ public sealed class HostAuthenticationStateProvider : AuthenticationStateProvide
 
     private async Task<ClaimsPrincipal> FetchUser()
     {
-        UserInfo? user = null;
+        ApplicationUserInfo? user = null;
 
         try
         {
             _logger.LogInformation("{clientBaseAddress}", _client.BaseAddress?.ToString());
-            user = await _client.GetFromJsonAsync<UserInfo>("api/User");
+            user = await _client.GetFromJsonAsync<ApplicationUserInfo>("api/User");
         }
         catch (Exception exc)
         {

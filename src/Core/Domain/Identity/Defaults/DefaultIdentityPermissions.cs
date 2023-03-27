@@ -1,6 +1,6 @@
 ﻿namespace Domain.Identity.Defaults;
 
-public static class DefaultPermissions
+public static class DefaultIdentityPermissions
 {
     public static readonly string View = "View";
     public static readonly string Edit = "Edit";

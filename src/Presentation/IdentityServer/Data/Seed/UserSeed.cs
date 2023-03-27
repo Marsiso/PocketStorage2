@@ -1,4 +1,6 @@
-﻿using Domain.Identity.Defaults;
+﻿using Domain.Data;
+using Domain.Identity.Defaults;
+using Domain.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
@@ -19,11 +21,11 @@ public sealed class UserSeed : IHostedService
     {
         await using (var scope = _serviceProvider.CreateAsyncScope())
         {
-            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
             await context.Database.EnsureCreatedAsync();
 
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
 
             await SeedRoleSystemAdmin(roleManager);
             await SeedRoleTenantAdmin(roleManager);
@@ -37,22 +39,24 @@ public sealed class UserSeed : IHostedService
         return Task.CompletedTask;
     }
 
-    private async Task AddUsers(UserManager<IdentityUser> userManager)
+    private async Task AddUsers(UserManager<ApplicationUser> userManager)
     {
         #region System Administrator
-        var sysuser = new IdentityUser
+        var sysuser = new ApplicationUser
         {
-            Email = DefaultConstants.DefaultSystemAdminEmail,
-            UserName = DefaultConstants.DefaultSystemAdminEmail,
-            // FirstName = "System.Administrator",
+            Email = DefaultIdentityConstants.DefaultSystemAdminEmail,
+            UserName = DefaultIdentityConstants.DefaultSystemAdminEmail,
+            FirstName = "System",
+            LastName = "Administrator",
+            Alias = "SysAdmin",
             EmailConfirmed = true,
-            // IsActive = true
+            IsActive = true
         };
 
         var superUserInDb = await userManager.FindByEmailAsync(sysuser.Email);
         if (superUserInDb == null)
         {
-            var result = await userManager.CreateAsync(sysuser, DefaultConstants.DefaultSystemAdminPassword);
+            var result = await userManager.CreateAsync(sysuser, DefaultIdentityConstants.DefaultSystemAdminPassword);
             if (!result.Succeeded)
             {
                 foreach (var error in result.Errors)
@@ -61,10 +65,10 @@ public sealed class UserSeed : IHostedService
                 }
             }
 
-            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.SystemAdmin);
+            result = await userManager.AddToRoleAsync(sysuser, DefaultIdentityRoles.SystemAdmin);
             if (result.Succeeded)
             {
-                _logger.LogInformation("Seed " + DefaultConstants.SystemAdministratorDesc + " User");
+                _logger.LogInformation("Seed " + DefaultIdentityConstants.SystemAdministratorDesc + " User");
             }
             else
             {
@@ -74,10 +78,10 @@ public sealed class UserSeed : IHostedService
                 }
             }
 
-            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.TenantAdmin);
+            result = await userManager.AddToRoleAsync(sysuser, DefaultIdentityRoles.TenantAdmin);
             if (result.Succeeded)
             {
-                _logger.LogInformation("Seed " + DefaultConstants.TenantAdministratorDesc + " User");
+                _logger.LogInformation("Seed " + DefaultIdentityConstants.TenantAdministratorDesc + " User");
             }
             else
             {
@@ -87,10 +91,10 @@ public sealed class UserSeed : IHostedService
                 }
             }
 
-            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.DefaultAccess);
+            result = await userManager.AddToRoleAsync(sysuser, DefaultIdentityRoles.DefaultAccess);
             if (result.Succeeded)
             {
-                _logger.LogInformation("Seed " + DefaultConstants.DefaultAccessDesc + " User");
+                _logger.LogInformation("Seed " + DefaultIdentityConstants.DefaultAccessDesc + " User");
             }
             else
             {
@@ -103,19 +107,21 @@ public sealed class UserSeed : IHostedService
         #endregion
 
         #region Tenant Administrator
-        var tenantuser = new IdentityUser
+        var tenantuser = new ApplicationUser
         {
-            Email = DefaultConstants.DefaultTenantAdminEmail,
-            UserName = DefaultConstants.DefaultTenantAdminEmail,
-            // FirstName = "System.Administrator",
+            Email = DefaultIdentityConstants.DefaultTenantAdminEmail,
+            UserName = DefaultIdentityConstants.DefaultTenantAdminEmail,
+            FirstName = "Tenant",
+            LastName = "Administrator",
+            Alias = "TenantAdmin",
             EmailConfirmed = true,
-            // IsActive = true
+            IsActive = true
         };
 
         var tenantUserInDb = await userManager.FindByEmailAsync(tenantuser.Email);
         if (tenantUserInDb == null)
         {
-            var result = await userManager.CreateAsync(tenantuser, DefaultConstants.DefaultTenantAdminPassword);
+            var result = await userManager.CreateAsync(tenantuser, DefaultIdentityConstants.DefaultTenantAdminPassword);
             if (!result.Succeeded)
             {
                 foreach (var error in result.Errors)
@@ -124,10 +130,10 @@ public sealed class UserSeed : IHostedService
                 }
             }
 
-            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.TenantAdmin);
+            result = await userManager.AddToRoleAsync(tenantuser, DefaultIdentityRoles.TenantAdmin);
             if (result.Succeeded)
             {
-                _logger.LogInformation("Seed " + DefaultConstants.TenantAdministratorDesc + " User");
+                _logger.LogInformation("Seed " + DefaultIdentityConstants.TenantAdministratorDesc + " User");
             }
             else
             {
@@ -137,10 +143,10 @@ public sealed class UserSeed : IHostedService
                 }
             }
 
-            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.DefaultAccess);
+            result = await userManager.AddToRoleAsync(tenantuser, DefaultIdentityRoles.DefaultAccess);
             if (result.Succeeded)
             {
-                _logger.LogInformation("Seed " + DefaultConstants.DefaultAccessDesc + " User");
+                _logger.LogInformation("Seed " + DefaultIdentityConstants.DefaultAccessDesc + " User");
             }
             else
             {
@@ -153,19 +159,21 @@ public sealed class UserSeed : IHostedService
         #endregion
 
         #region Default
-        var defaultuser = new IdentityUser
+        var defaultuser = new ApplicationUser
         {
-            Email = DefaultConstants.DefaultAccessEmail,
-            UserName = DefaultConstants.DefaultAccessEmail,
-            // FirstName = "System.Administrator",
+            Email = DefaultIdentityConstants.DefaultAccessEmail,
+            UserName = DefaultIdentityConstants.DefaultAccessEmail,
+            FirstName = "Default",
+            LastName = "Access",
+            Alias = "DefaultAccess",
             EmailConfirmed = true,
-            // IsActive = true
+            IsActive = true
         };
 
         var defaultUserInDb = await userManager.FindByEmailAsync(defaultuser.Email);
         if (defaultUserInDb == null)
         {
-            var result = await userManager.CreateAsync(defaultuser, DefaultConstants.DefaultAccessPassword);
+            var result = await userManager.CreateAsync(defaultuser, DefaultIdentityConstants.DefaultAccessPassword);
             if (!result.Succeeded)
             {
                 foreach (var error in result.Errors)
@@ -174,10 +182,10 @@ public sealed class UserSeed : IHostedService
                 }
             }
 
-            result = await userManager.AddToRoleAsync(sysuser, DefaultRoles.DefaultAccess);
+            result = await userManager.AddToRoleAsync(defaultuser, DefaultIdentityRoles.DefaultAccess);
             if (result.Succeeded)
             {
-                _logger.LogInformation("Seed " + DefaultConstants.DefaultAccessDesc + " User");
+                _logger.LogInformation("Seed " + DefaultIdentityConstants.DefaultAccessDesc + " User");
             }
             else
             {
@@ -190,9 +198,9 @@ public sealed class UserSeed : IHostedService
         #endregion
     }
 
-    private async Task<IdentityRole> AddUser(RoleManager<IdentityRole> roleManager, string roleName, CancellationToken cancellationToken = default)
+    private async Task<ApplicationRole> AddUser(RoleManager<ApplicationRole> roleManager, string roleName, CancellationToken cancellationToken = default)
     {
-        var role = new IdentityRole { Name = roleName };
+        var role = new ApplicationRole { Name = roleName };
         var roleInDb = await roleManager.FindByNameAsync(roleName);
         if (roleInDb == null)
         {
@@ -204,12 +212,18 @@ public sealed class UserSeed : IHostedService
         return role;
     }
 
-    private static async Task SeedRoleSystemAdmin(RoleManager<IdentityRole> roleManager)
+    private static async Task SeedRoleSystemAdmin(RoleManager<ApplicationRole> roleManager)
     {
-        var adminRole = await roleManager.FindByNameAsync(DefaultRoles.SystemAdmin);
+        var adminRole = await roleManager.FindByNameAsync(DefaultIdentityRoles.SystemAdmin);
         if (adminRole == null)
         {
-            var role = new IdentityRole { Name = DefaultRoles.SystemAdmin };
+            var role = new ApplicationRole
+            {
+                Name = DefaultIdentityRoles.SystemAdmin,
+                Description = DefaultIdentityConstants.SystemAdministratorDesc,
+                IsActive = true
+            };
+
             await roleManager.CreateAsync(role);
             adminRole = role;
         }
@@ -218,10 +232,10 @@ public sealed class UserSeed : IHostedService
 
         var defaultPermissions = new List<string>()
         {
-            DefaultPermissions.Create,
-            DefaultPermissions.View,
-            DefaultPermissions.Edit,
-            DefaultPermissions.Delete
+            DefaultIdentityPermissions.Create,
+            DefaultIdentityPermissions.View,
+            DefaultIdentityPermissions.Edit,
+            DefaultIdentityPermissions.Delete
         };
 
         foreach (var permission in defaultPermissions)
@@ -233,17 +247,16 @@ public sealed class UserSeed : IHostedService
         }
     }
 
-    private static async Task SeedRoleTenantAdmin(RoleManager<IdentityRole> roleManager)
+    private static async Task SeedRoleTenantAdmin(RoleManager<ApplicationRole> roleManager)
     {
-        var adminRole = await roleManager.FindByNameAsync(DefaultRoles.TenantAdmin);
+        var adminRole = await roleManager.FindByNameAsync(DefaultIdentityRoles.TenantAdmin);
         if (adminRole == null)
         {
-            var role = new IdentityRole
+            var role = new ApplicationRole
             {
-                Name = DefaultRoles.TenantAdmin,
-                // Description = DefaultRole.TenantAdmin,
-                // TenantId = tenant.Id,
-                // IsActive = true
+                Name = DefaultIdentityRoles.TenantAdmin,
+                Description = DefaultIdentityConstants.TenantAdministratorDesc,
+                IsActive = true
             };
             await roleManager.CreateAsync(role);
             adminRole = role;
@@ -253,9 +266,9 @@ public sealed class UserSeed : IHostedService
 
         var defaultPermissions = new List<string>()
         {
-            DefaultPermissions.Create,
-            DefaultPermissions.View,
-            DefaultPermissions.Edit
+            DefaultIdentityPermissions.Create,
+            DefaultIdentityPermissions.View,
+            DefaultIdentityPermissions.Edit
         };
 
         foreach (var permission in defaultPermissions)
@@ -267,17 +280,16 @@ public sealed class UserSeed : IHostedService
         }
     }
 
-    private static async Task SeedRoleDefaultAccess(RoleManager<IdentityRole> roleManager)
+    private static async Task SeedRoleDefaultAccess(RoleManager<ApplicationRole> roleManager)
     {
-        var defaultAccessRole = await roleManager.FindByNameAsync(DefaultRoles.DefaultAccess);
+        var defaultAccessRole = await roleManager.FindByNameAsync(DefaultIdentityRoles.DefaultAccess);
         if (defaultAccessRole == null)
         {
-            var role = new IdentityRole
+            var role = new ApplicationRole
             {
-                Name = DefaultRoles.DefaultAccess,
-                // Description = DefaultRole.TenantAdmin,
-                // TenantId = tenant.Id,
-                // IsActive = true
+                Name = DefaultIdentityRoles.DefaultAccess,
+                Description = DefaultIdentityConstants.DefaultAccessDesc,
+                IsActive = true
             };
             await roleManager.CreateAsync(role);
             defaultAccessRole = role;
@@ -287,7 +299,7 @@ public sealed class UserSeed : IHostedService
 
         var defaultPermissions = new List<string>()
         {
-            DefaultPermissions.View
+            DefaultIdentityPermissions.View
         };
 
         foreach (var permission in defaultPermissions)

@@ -1,4 +1,5 @@
-﻿using IdentityServer.Controllers.Web.Base;
+﻿using Domain.Identity.Entities;
+using IdentityServer.Controllers.Web.Base;
 using IdentityServer.Helpers;
 using IdentityServer.Models.Authorization;
 using Microsoft.AspNetCore;
@@ -21,15 +22,15 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
     private readonly IOpenIddictApplicationManager _applicationManager;
     private readonly IOpenIddictAuthorizationManager _authorizationManager;
     private readonly IOpenIddictScopeManager _scopeManager;
-    private readonly SignInManager<IdentityUser> _signInManager;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public AuthorizationController(
         IOpenIddictApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
         IOpenIddictScopeManager scopeManager,
-        SignInManager<IdentityUser> signInManager,
-        UserManager<IdentityUser> userManager)
+        SignInManager<ApplicationUser> signInManager,
+        UserManager<ApplicationUser> userManager)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
@@ -90,7 +91,7 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
 
         switch (await _applicationManager.GetConsentTypeAsync(application))
         {
-            // If the consent is external (e. g when authorizations are granted by a sysadmin), immediately return an error if no authorization can be found in the database
+            // If the consent is external (e. g when authorizations are granted by a system administrator), immediately return an error if no authorization can be found in the database
             case ConsentTypes.External when !authorizations.Any():
                 return Forbid(
                     authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,

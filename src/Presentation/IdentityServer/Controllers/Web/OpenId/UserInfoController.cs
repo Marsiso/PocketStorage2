@@ -1,4 +1,5 @@
-﻿using IdentityServer.Controllers.Web.Base;
+﻿using Domain.Identity.Entities;
+using IdentityServer.Controllers.Web.Base;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -11,8 +12,8 @@ namespace IdentityServer.Controllers.Web.OpenId;
 
 public sealed class UserInfoController : BaseWebController<UserInfoController>
 {
-    private readonly UserManager<IdentityUser> _userManager;
-    public UserInfoController(UserManager<IdentityUser> userManager)
+    private readonly UserManager<ApplicationUser> _userManager;
+    public UserInfoController(UserManager<ApplicationUser> userManager)
     {
         _userManager = userManager;
     }

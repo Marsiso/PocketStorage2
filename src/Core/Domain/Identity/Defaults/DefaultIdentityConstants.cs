@@ -1,6 +1,6 @@
 ﻿namespace Domain.Identity.Defaults;
 
-public static class DefaultConstants
+public static class DefaultIdentityConstants
 {
     #region Roles
     public const string SystemAdministratorRole = "SystemAdministrator";
