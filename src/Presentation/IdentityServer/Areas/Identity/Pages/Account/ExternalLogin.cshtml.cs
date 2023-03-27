@@ -102,12 +102,12 @@ public sealed class ExternalLoginModel : PageModel
         public string Alias { get; set; }
     }
 
-    public IActionResult OnGet() => RedirectToPage("./Login");
+    public IActionResult OnGet() => RedirectToPage("./login");
 
     public IActionResult OnPost(string provider, string returnUrl = null)
     {
         // Request a redirect to the external login provider.
-        var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl });
+        var redirectUrl = Url.Page("./externalLogin", pageHandler: "Callback", values: new { returnUrl });
         var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
         return new ChallengeResult(provider, properties);
     }
@@ -118,13 +118,13 @@ public sealed class ExternalLoginModel : PageModel
         if (remoteError != null)
         {
             ErrorMessage = $"Error from external provider: {remoteError}";
-            return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+            return RedirectToPage("./login", new { ReturnUrl = returnUrl });
         }
         var info = await _signInManager.GetExternalLoginInfoAsync();
         if (info == null)
         {
             ErrorMessage = "Error loading external login information.";
-            return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+            return RedirectToPage("./login", new { ReturnUrl = returnUrl });
         }
 
         // Sign in the user with this external login provider if the user already has a login.
@@ -136,7 +136,7 @@ public sealed class ExternalLoginModel : PageModel
         }
         if (result.IsLockedOut)
         {
-            return RedirectToPage("./Lockout");
+            return RedirectToPage("./lockout");
         }
         else
         {
@@ -171,7 +171,7 @@ public sealed class ExternalLoginModel : PageModel
         if (info == null)
         {
             ErrorMessage = "Error loading external login information during confirmation.";
-            return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+            return RedirectToPage("./login", new { ReturnUrl = returnUrl });
         }
 
         if (ModelState.IsValid)
@@ -221,7 +221,7 @@ public sealed class ExternalLoginModel : PageModel
                         // If account confirmation is required, we need to show the link if we don't have a real email sender
                         if (_userManager.Options.SignIn.RequireConfirmedAccount)
                         {
-                            return RedirectToPage("./RegisterConfirmation", new { Email = Input.Email });
+                            return RedirectToPage("./registerConfirmation", new { Email = Input.Email });
                         }
 
                         await _signInManager.SignInAsync(user, isPersistent: false, info.LoginProvider);
@@ -238,6 +238,7 @@ public sealed class ExternalLoginModel : PageModel
 
         ProviderDisplayName = info.ProviderDisplayName;
         ReturnUrl = returnUrl;
+
         return Page();
     }
 

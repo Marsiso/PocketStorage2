@@ -128,6 +128,11 @@ builder.Services.AddAuthentication()
     {
         options.ClientId = builder.Configuration["Authentication:Facebook:ClientId"]!;
         options.ClientSecret = builder.Configuration["Authentication:Facebook:ClientSecret"]!;
+    })
+    .AddMicrosoftAccount(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:MicrosoftAccount:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:MicrosoftAccount:ClientSecret"]!;
     });
 
 builder.Services.AddControllersWithViews();
