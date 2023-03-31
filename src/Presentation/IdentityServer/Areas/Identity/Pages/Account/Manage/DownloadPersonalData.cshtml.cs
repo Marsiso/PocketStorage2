@@ -1,5 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
+// file to you under the MIT license.
 #nullable disable
 
 using Domain.Identity.Entities;
@@ -12,8 +12,14 @@ namespace IdentityServer.Areas.Identity.Pages.Account.Manage;
 
 public sealed class DownloadPersonalDataModel : PageModel
 {
-    private readonly UserManager<ApplicationUser> _userManager;
+    #region Private Fields
+
     private readonly ILogger<DownloadPersonalDataModel> _logger;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    #endregion Private Fields
+
+    #region Public Constructors
 
     public DownloadPersonalDataModel(
         UserManager<ApplicationUser> userManager,
@@ -22,6 +28,10 @@ public sealed class DownloadPersonalDataModel : PageModel
         _userManager = userManager;
         _logger = logger;
     }
+
+    #endregion Public Constructors
+
+    #region Public Methods
 
     public IActionResult OnGet()
     {
@@ -58,4 +68,6 @@ public sealed class DownloadPersonalDataModel : PageModel
         Response.Headers.Add("Content-Disposition", "attachment; filename=PersonalData.json");
         return new FileContentResult(JsonSerializer.SerializeToUtf8Bytes(personalData), "application/json");
     }
+
+    #endregion Public Methods
 }

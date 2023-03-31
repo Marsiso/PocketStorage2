@@ -1,5 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
+// file to you under the MIT license.
 #nullable disable
 
 using Domain.Identity.Entities;
@@ -7,13 +7,20 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
+
 namespace IdentityServer.Areas.Identity.Pages.Account;
 
 public sealed class LoginWithRecoveryCodeModel : PageModel
 {
+    #region Private Fields
+
+    private readonly ILogger<LoginWithRecoveryCodeModel> _logger;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly ILogger<LoginWithRecoveryCodeModel> _logger;
+
+    #endregion Private Fields
+
+    #region Public Constructors
 
     public LoginWithRecoveryCodeModel(
         SignInManager<ApplicationUser> signInManager,
@@ -25,35 +32,26 @@ public sealed class LoginWithRecoveryCodeModel : PageModel
         _logger = logger;
     }
 
+    #endregion Public Constructors
+
+    #region Public Properties
+
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [BindProperty]
     public InputModel Input { get; set; }
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     public string ReturnUrl { get; set; }
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public class InputModel
-    {
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [BindProperty]
-        [Required]
-        [DataType(DataType.Text)]
-        [Display(Name = "Recovery Code")]
-        public string RecoveryCode { get; set; }
-    }
+    #endregion Public Properties
+
+    #region Public Methods
 
     public async Task<IActionResult> OnGetAsync(string returnUrl = null)
     {
@@ -105,4 +103,31 @@ public sealed class LoginWithRecoveryCodeModel : PageModel
             return Page();
         }
     }
+
+    #endregion Public Methods
+
+    #region Public Classes
+
+    /// <summary>
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
+    /// </summary>
+    public class InputModel
+    {
+        #region Public Properties
+
+        /// <summary>
+        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
+        /// intended to be used directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [BindProperty]
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Recovery Code")]
+        public string RecoveryCode { get; set; }
+
+        #endregion Public Properties
+    }
+
+    #endregion Public Classes
 }

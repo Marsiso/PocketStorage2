@@ -1,8 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
+// file to you under the MIT license.
 #nullable disable
 
-using Domain.Identity.Defaults;
+using Domain.Constants;
 using Domain.Identity.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -20,19 +20,52 @@ namespace IdentityServer.Areas.Identity.Pages.Account;
 [AllowAnonymous]
 public sealed class ExternalLoginModel : PageModel
 {
+    #region Private Fields
+
+    private readonly IEmailSender _emailSender;
+    private readonly IUserEmailStore<ApplicationUser> _emailStore;
+    private readonly ILogger<ExternalLoginModel> _logger;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserStore<ApplicationUser> _userStore;
-    private readonly IUserEmailStore<ApplicationUser> _emailStore;
-    private readonly IEmailSender _emailSender;
-    private readonly ILogger<ExternalLoginModel> _logger;
+
+    #endregion Private Fields
+
+    #region Private Methods
+
+    private ApplicationUser CreateUser()
+    {
+        try
+        {
+            return Activator.CreateInstance<ApplicationUser>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
+                $"override the external login page in /Areas/Identity/Pages/Account/ExternalLogin.cshtml");
+        }
+    }
+
+    private IUserEmailStore<ApplicationUser> GetEmailStore()
+    {
+        if (!_userManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("The default UI requires a user store with email support.");
+        }
+        return (IUserEmailStore<ApplicationUser>)_userStore;
+    }
+
+    #endregion Private Methods
+
+    #region Public Constructors
 
     public ExternalLoginModel(
-        SignInManager<ApplicationUser> signInManager,
-        UserManager<ApplicationUser> userManager,
-        IUserStore<ApplicationUser> userStore,
-        ILogger<ExternalLoginModel> logger,
-        IEmailSender emailSender)
+                                    SignInManager<ApplicationUser> signInManager,
+            UserManager<ApplicationUser> userManager,
+            IUserStore<ApplicationUser> userStore,
+            ILogger<ExternalLoginModel> logger,
+            IEmailSender emailSender)
     {
         _signInManager = signInManager;
         _userManager = userManager;
@@ -42,75 +75,41 @@ public sealed class ExternalLoginModel : PageModel
         _emailSender = emailSender;
     }
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    [BindProperty]
-    public InputModel Input { get; set; }
+    #endregion Public Constructors
+
+    #region Public Properties
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public string ProviderDisplayName { get; set; }
-
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public string ReturnUrl { get; set; }
-
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [TempData]
     public string ErrorMessage { get; set; }
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public class InputModel
-    {
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+    [BindProperty]
+    public InputModel Input { get; set; }
 
-        [Required]
-        [DataType(DataType.Text)]
-        [Display(Name = "First Name")]
-        public string FirstName { get; set; }
+    /// <summary>
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
+    /// </summary>
+    public string ProviderDisplayName { get; set; }
 
-        [DataType(DataType.Text)]
-        [Display(Name = "Middle Name")]
-        public string MiddleName { get; set; }
+    /// <summary>
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
+    /// </summary>
+    public string ReturnUrl { get; set; }
 
-        [Required]
-        [DataType(DataType.Text)]
-        [Display(Name = "Last Name")]
-        public string LastName { get; set; }
+    #endregion Public Properties
 
-        [Required]
-        [DataType(DataType.Text)]
-        [Display(Name = "Alias")]
-        public string Alias { get; set; }
-    }
+    #region Public Methods
 
     public IActionResult OnGet() => RedirectToPage("./login");
-
-    public IActionResult OnPost(string provider, string returnUrl = null)
-    {
-        // Request a redirect to the external login provider.
-        var redirectUrl = Url.Page("./externalLogin", pageHandler: "Callback", values: new { returnUrl });
-        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-        return new ChallengeResult(provider, properties);
-    }
 
     public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
     {
@@ -128,7 +127,8 @@ public sealed class ExternalLoginModel : PageModel
         }
 
         // Sign in the user with this external login provider if the user already has a login.
-        var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+        var result =
+            await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
         if (result.Succeeded)
         {
             _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
@@ -161,6 +161,14 @@ public sealed class ExternalLoginModel : PageModel
 
             return Page();
         }
+    }
+
+    public IActionResult OnPost(string provider, string returnUrl = null)
+    {
+        // Request a redirect to the external login provider.
+        var redirectUrl = Url.Page("./externalLogin", pageHandler: "Callback", values: new { returnUrl });
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+        return new ChallengeResult(provider, properties);
     }
 
     public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
@@ -196,7 +204,7 @@ public sealed class ExternalLoginModel : PageModel
             {
                 _logger.LogInformation("User created a new account without password.");
 
-                result = await _userManager.AddToRoleAsync(user, DefaultIdentityRoles.DefaultAccess);
+                result = await _userManager.AddToRoleAsync(user, ApplicationConstants.Roles.DefaultAccess);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("Newly created user added to default access role.");
@@ -218,7 +226,8 @@ public sealed class ExternalLoginModel : PageModel
                         await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                             $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
-                        // If account confirmation is required, we need to show the link if we don't have a real email sender
+                        // If account confirmation is required, we need to show the link if we don't
+                        // have a real email sender
                         if (_userManager.Options.SignIn.RequireConfirmedAccount)
                         {
                             return RedirectToPage("./registerConfirmation", new { Email = Input.Email });
@@ -242,26 +251,47 @@ public sealed class ExternalLoginModel : PageModel
         return Page();
     }
 
-    private ApplicationUser CreateUser()
+    #endregion Public Methods
+
+    #region Public Classes
+
+    /// <summary>
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
+    /// </summary>
+    public class InputModel
     {
-        try
-        {
-            return Activator.CreateInstance<ApplicationUser>();
-        }
-        catch
-        {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                $"override the external login page in /Areas/Identity/Pages/Account/ExternalLogin.cshtml");
-        }
+        #region Public Properties
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Alias")]
+        public string Alias { get; set; }
+
+        /// <summary>
+        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
+        /// intended to be used directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; }
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; }
+
+        [DataType(DataType.Text)]
+        [Display(Name = "Middle Name")]
+        public string MiddleName { get; set; }
+
+        #endregion Public Properties
     }
 
-    private IUserEmailStore<ApplicationUser> GetEmailStore()
-    {
-        if (!_userManager.SupportsUserEmail)
-        {
-            throw new NotSupportedException("The default UI requires a user store with email support.");
-        }
-        return (IUserEmailStore<ApplicationUser>)_userStore;
-    }
+    #endregion Public Classes
 }

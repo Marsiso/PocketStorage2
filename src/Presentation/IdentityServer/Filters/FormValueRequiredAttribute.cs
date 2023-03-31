@@ -1,16 +1,26 @@
 ﻿using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 
-namespace IdentityServer.Helpers;
+namespace IdentityServer.Filters;
 
 public sealed class FormValueRequiredAttribute : ActionMethodSelectorAttribute
 {
+    #region Private Fields
+
     private readonly string _name;
+
+    #endregion Private Fields
+
+    #region Public Constructors
 
     public FormValueRequiredAttribute(string name)
     {
         _name = name;
     }
+
+    #endregion Public Constructors
+
+    #region Public Methods
 
     public override bool IsValidForRequest(RouteContext routeContext, ActionDescriptor action)
     {
@@ -34,4 +44,6 @@ public sealed class FormValueRequiredAttribute : ActionMethodSelectorAttribute
 
         return !string.IsNullOrEmpty(routeContext.HttpContext.Request.Form[_name]);
     }
+
+    #endregion Public Methods
 }

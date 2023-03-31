@@ -12,11 +12,22 @@ namespace IdentityServer.Controllers.Web.OpenId;
 
 public sealed class UserInfoController : BaseWebController<UserInfoController>
 {
+    #region Private Fields
+
     private readonly UserManager<ApplicationUser> _userManager;
+
+    #endregion Private Fields
+
+    #region Public Constructors
+
     public UserInfoController(UserManager<ApplicationUser> userManager)
     {
         _userManager = userManager;
     }
+
+    #endregion Public Constructors
+
+    #region Public Methods
 
     [Authorize(AuthenticationSchemes = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)]
     [HttpGet("~/connect/userinfo"), HttpPost("~/connect/userinfo"), Produces("application/json")]
@@ -57,7 +68,10 @@ public sealed class UserInfoController : BaseWebController<UserInfoController>
             claims[Claims.Role] = await _userManager.GetRolesAsync(user);
         }
 
-        // Note: the complete list of standard claims supported by the OpenID Connect specification can be found here: "https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims"
+        // Note: the complete list of standard claims supported by the OpenID Connect specification
+        // can be found here: "https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims"
         return Ok(claims);
     }
+
+    #endregion Public Methods
 }

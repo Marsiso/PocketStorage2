@@ -22,7 +22,7 @@ namespace IdentityServer.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationRole", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationRole", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -33,7 +33,8 @@ namespace IdentityServer.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -56,7 +57,7 @@ namespace IdentityServer.Data.Migrations
                     b.ToTable("AspNetRoles", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationRoleClaim", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationRoleClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -80,7 +81,7 @@ namespace IdentityServer.Data.Migrations
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationUser", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -91,7 +92,8 @@ namespace IdentityServer.Data.Migrations
 
                     b.Property<string>("Alias")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -106,14 +108,16 @@ namespace IdentityServer.Data.Migrations
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -122,7 +126,8 @@ namespace IdentityServer.Data.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("MiddleName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -164,7 +169,7 @@ namespace IdentityServer.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationUserClaim", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationUserClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -188,7 +193,7 @@ namespace IdentityServer.Data.Migrations
                     b.ToTable("AspNetUserClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationUserLogin", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationUserLogin", b =>
                 {
                     b.Property<string>("LoginProvider")
                         .HasColumnType("nvarchar(450)");
@@ -209,7 +214,7 @@ namespace IdentityServer.Data.Migrations
                     b.ToTable("AspNetUserLogins", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationUserRole", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationUserRole", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -224,7 +229,7 @@ namespace IdentityServer.Data.Migrations
                     b.ToTable("AspNetUserRoles", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationUserToken", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationUserToken", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -444,51 +449,51 @@ namespace IdentityServer.Data.Migrations
                     b.ToTable("OpenIddictTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationRoleClaim", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationRoleClaim", b =>
                 {
-                    b.HasOne("Domain.Identity.Models.ApplicationRole", null)
+                    b.HasOne("Domain.Identity.Entities.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationUserClaim", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationUserClaim", b =>
                 {
-                    b.HasOne("Domain.Identity.Models.ApplicationUser", null)
+                    b.HasOne("Domain.Identity.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationUserLogin", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationUserLogin", b =>
                 {
-                    b.HasOne("Domain.Identity.Models.ApplicationUser", null)
+                    b.HasOne("Domain.Identity.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationUserRole", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationUserRole", b =>
                 {
-                    b.HasOne("Domain.Identity.Models.ApplicationRole", null)
+                    b.HasOne("Domain.Identity.Entities.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Identity.Models.ApplicationUser", null)
+                    b.HasOne("Domain.Identity.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Identity.Models.ApplicationUserToken", b =>
+            modelBuilder.Entity("Domain.Identity.Entities.ApplicationUserToken", b =>
                 {
-                    b.HasOne("Domain.Identity.Models.ApplicationUser", null)
+                    b.HasOne("Domain.Identity.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

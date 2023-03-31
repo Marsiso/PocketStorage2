@@ -1,8 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
+// file to you under the MIT license.
 #nullable disable
 
-using Domain.Identity.Defaults;
+using Domain.Constants;
 using Domain.Identity.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -18,15 +18,48 @@ namespace IdentityServer.Areas.Identity.Pages.Account;
 
 public sealed class RegisterModel : PageModel
 {
+    #region Private Fields
+
+    private readonly IEmailSender _emailSender;
+    private readonly IUserEmailStore<ApplicationUser> _emailStore;
+    private readonly ILogger<RegisterModel> _logger;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserStore<ApplicationUser> _userStore;
-    private readonly IUserEmailStore<ApplicationUser> _emailStore;
-    private readonly ILogger<RegisterModel> _logger;
-    private readonly IEmailSender _emailSender;
+
+    #endregion Private Fields
+
+    #region Private Methods
+
+    private ApplicationUser CreateUser()
+    {
+        try
+        {
+            return Activator.CreateInstance<ApplicationUser>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
+                $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
+        }
+    }
+
+    private IUserEmailStore<ApplicationUser> GetEmailStore()
+    {
+        if (!_userManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("The default UI requires a user store with email support.");
+        }
+        return (IUserEmailStore<ApplicationUser>)_userStore;
+    }
+
+    #endregion Private Methods
+
+    #region Public Constructors
 
     public RegisterModel(
-        UserManager<ApplicationUser> userManager,
+                UserManager<ApplicationUser> userManager,
         IUserStore<ApplicationUser> userStore,
         SignInManager<ApplicationUser> signInManager,
         ILogger<RegisterModel> logger,
@@ -40,79 +73,32 @@ public sealed class RegisterModel : PageModel
         _emailSender = emailSender;
     }
 
+    #endregion Public Constructors
+
+    #region Public Properties
+
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
+    /// </summary>
+    public IList<AuthenticationScheme> ExternalLogins { get; set; }
+
+    /// <summary>
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [BindProperty]
     public InputModel Input { get; set; }
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     public string ReturnUrl { get; set; }
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public IList<AuthenticationScheme> ExternalLogins { get; set; }
+    #endregion Public Properties
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public sealed class InputModel
-    {
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [Required]
-        [EmailAddress]
-        [Display(Name = "Email")]
-        public string Email { get; set; }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        [Display(Name = "Password")]
-        public string Password { get; set; }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; }
-
-        [Required]
-        [DataType(DataType.Text)]
-        [Display(Name = "First Name")]
-        public string FirstName { get; set; }
-
-        [DataType(DataType.Text)]
-        [Display(Name = "Middle Name")]
-        public string MiddleName { get; set; }
-
-        [Required]
-        [DataType(DataType.Text)]
-        [Display(Name = "Last Name")]
-        public string LastName { get; set; }
-
-        [Required]
-        [DataType(DataType.Text)]
-        [Display(Name = "Alias")]
-        public string Alias { get; set; }
-    }
-
+    #region Public Methods
 
     public async Task OnGetAsync(string returnUrl = null)
     {
@@ -140,7 +126,6 @@ public sealed class RegisterModel : PageModel
                 }
             }
 
-
             await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
             await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
             var result = await _userManager.CreateAsync(user, Input.Password);
@@ -148,7 +133,7 @@ public sealed class RegisterModel : PageModel
             if (result.Succeeded)
             {
                 _logger.LogInformation("User created a new account with password.");
-                result = await _userManager.AddToRoleAsync(user, DefaultIdentityRoles.DefaultAccess);
+                result = await _userManager.AddToRoleAsync(user, ApplicationConstants.Roles.DefaultAccess);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("Newly created user added to default access role.");
@@ -187,26 +172,67 @@ public sealed class RegisterModel : PageModel
         return Page();
     }
 
-    private ApplicationUser CreateUser()
+    #endregion Public Methods
+
+    #region Public Classes
+
+    /// <summary>
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
+    /// </summary>
+    public sealed class InputModel
     {
-        try
-        {
-            return Activator.CreateInstance<ApplicationUser>();
-        }
-        catch
-        {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
-        }
+        #region Public Properties
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Alias")]
+        public string Alias { get; set; }
+
+        /// <summary>
+        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
+        /// intended to be used directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; }
+
+        /// <summary>
+        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
+        /// intended to be used directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Email")]
+        public string Email { get; set; }
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; }
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; }
+
+        [DataType(DataType.Text)]
+        [Display(Name = "Middle Name")]
+        public string MiddleName { get; set; }
+
+        /// <summary>
+        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
+        /// intended to be used directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; }
+
+        #endregion Public Properties
     }
 
-    private IUserEmailStore<ApplicationUser> GetEmailStore()
-    {
-        if (!_userManager.SupportsUserEmail)
-        {
-            throw new NotSupportedException("The default UI requires a user store with email support.");
-        }
-        return (IUserEmailStore<ApplicationUser>)_userStore;
-    }
+    #endregion Public Classes
 }

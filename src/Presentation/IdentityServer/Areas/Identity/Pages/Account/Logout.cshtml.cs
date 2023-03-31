@@ -1,5 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
+// file to you under the MIT license.
 #nullable disable
 
 using Domain.Identity.Entities;
@@ -11,14 +11,24 @@ namespace IdentityServer.Areas.Identity.Pages.Account;
 
 public sealed class LogoutModel : PageModel
 {
-    private readonly SignInManager<ApplicationUser> _signInManager;
+    #region Private Fields
+
     private readonly ILogger<LogoutModel> _logger;
+    private readonly SignInManager<ApplicationUser> _signInManager;
+
+    #endregion Private Fields
+
+    #region Public Constructors
 
     public LogoutModel(SignInManager<ApplicationUser> signInManager, ILogger<LogoutModel> logger)
     {
         _signInManager = signInManager;
         _logger = logger;
     }
+
+    #endregion Public Constructors
+
+    #region Public Methods
 
     public async Task<IActionResult> OnPost(string returnUrl = null)
     {
@@ -30,9 +40,11 @@ public sealed class LogoutModel : PageModel
         }
         else
         {
-            // This needs to be a redirect so that the browser performs a new
-            // request and the identity for the user gets updated.
+            // This needs to be a redirect so that the browser performs a new request and the
+            // identity for the user gets updated.
             return RedirectToPage();
         }
     }
+
+    #endregion Public Methods
 }

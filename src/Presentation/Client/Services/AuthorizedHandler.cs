@@ -5,10 +5,13 @@ namespace Client.Services;
 // original source https://github.com/berhir/BlazorWebAssemblyCookieAuth
 public sealed class AuthorizedHandler : DelegatingHandler
 {
+    #region Private Fields
+
     private readonly HostAuthenticationStateProvider _authenticationStateProvider;
 
-    public AuthorizedHandler(HostAuthenticationStateProvider authenticationStateProvider)
-        => _authenticationStateProvider = authenticationStateProvider;
+    #endregion Private Fields
+
+    #region Protected Methods
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
@@ -34,4 +37,13 @@ public sealed class AuthorizedHandler : DelegatingHandler
 
         return responseMessage;
     }
+
+    #endregion Protected Methods
+
+    #region Public Constructors
+
+    public AuthorizedHandler(HostAuthenticationStateProvider authenticationStateProvider)
+            => _authenticationStateProvider = authenticationStateProvider;
+
+    #endregion Public Constructors
 }

@@ -1,5 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
+// file to you under the MIT license.
 #nullable disable
 
 using Domain.Identity.Entities;
@@ -14,60 +14,33 @@ namespace IdentityServer.Areas.Identity.Pages.Account;
 
 public sealed class ResetPasswordModel : PageModel
 {
+    #region Private Fields
+
     private readonly UserManager<ApplicationUser> _userManager;
+
+    #endregion Private Fields
+
+    #region Public Constructors
 
     public ResetPasswordModel(UserManager<ApplicationUser> userManager)
     {
         _userManager = userManager;
     }
 
+    #endregion Public Constructors
+
+    #region Public Properties
+
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [BindProperty]
     public InputModel Input { get; set; }
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public class InputModel
-    {
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+    #endregion Public Properties
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        public string Password { get; set; }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [Required]
-        public string Code { get; set; }
-
-    }
+    #region Public Methods
 
     public IActionResult OnGet(string code = null)
     {
@@ -111,4 +84,54 @@ public sealed class ResetPasswordModel : PageModel
         }
         return Page();
     }
+
+    #endregion Public Methods
+
+    #region Public Classes
+
+    /// <summary>
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
+    /// </summary>
+    public class InputModel
+    {
+        #region Public Properties
+
+        /// <summary>
+        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
+        /// intended to be used directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [Required]
+        public string Code { get; set; }
+
+        /// <summary>
+        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
+        /// intended to be used directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; }
+
+        /// <summary>
+        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
+        /// intended to be used directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        /// <summary>
+        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
+        /// intended to be used directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
+
+        #endregion Public Properties
+    }
+
+    #endregion Public Classes
 }

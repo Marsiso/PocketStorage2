@@ -4,6 +4,8 @@ namespace Server.Extensions;
 
 public static class ApplicationBuilderExtensions
 {
+    #region Public Methods
+
     public static IApplicationBuilder UseNoUnauthorizedRedirect(this IApplicationBuilder applicationBuilder, params string[] segments)
     {
         applicationBuilder.Use(async (httpContext, func) =>
@@ -18,4 +20,6 @@ public static class ApplicationBuilderExtensions
 
         return applicationBuilder;
     }
+
+    #endregion Public Methods
 }

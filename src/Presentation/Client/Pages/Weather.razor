@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Authorization;
 @inject IAntiforgeryHttpClientFactory httpClientFactory
 @inject IJSRuntime JSRuntime
-@attribute [Authorize(Roles = DefaultIdentityConstants.SystemAdministratorRole)]
+@attribute [Authorize(Roles = ApplicationConstants.Roles.SystemAdministrator)]
 
 <PageTitle>Weather forecast</PageTitle>
 

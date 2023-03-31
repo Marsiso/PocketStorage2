@@ -2,6 +2,8 @@
 
 public static class EndpointRouteBuilderExtensions
 {
+    #region Public Methods
+
     public static IEndpointRouteBuilder MapNotFound(this IEndpointRouteBuilder endpointRouteBuilder, string pattern)
     {
         endpointRouteBuilder.Map(pattern, context =>
@@ -23,4 +25,6 @@ public static class EndpointRouteBuilderExtensions
 
         return endpointRouteBuilder;
     }
+
+    #endregion Public Methods
 }

@@ -1,5 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
+// file to you under the MIT license.
 #nullable disable
 
 using Domain.Identity.Entities;
@@ -11,9 +11,15 @@ namespace IdentityServer.Areas.Identity.Pages.Account.Manage;
 
 public sealed class TwoFactorAuthenticationModel : PageModel
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
+    #region Private Fields
+
     private readonly ILogger<TwoFactorAuthenticationModel> _logger;
+    private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    #endregion Private Fields
+
+    #region Public Constructors
 
     public TwoFactorAuthenticationModel(
         UserManager<ApplicationUser> userManager,
@@ -25,37 +31,45 @@ public sealed class TwoFactorAuthenticationModel : PageModel
         _logger = logger;
     }
 
+    #endregion Public Constructors
+
+    #region Public Properties
+
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     public bool HasAuthenticator { get; set; }
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public int RecoveryCodesLeft { get; set; }
-
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [BindProperty]
     public bool Is2faEnabled { get; set; }
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     public bool IsMachineRemembered { get; set; }
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
+    /// </summary>
+    public int RecoveryCodesLeft { get; set; }
+
+    /// <summary>
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [TempData]
     public string StatusMessage { get; set; }
+
+    #endregion Public Properties
+
+    #region Public Methods
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -85,4 +99,6 @@ public sealed class TwoFactorAuthenticationModel : PageModel
         StatusMessage = "The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.";
         return RedirectToPage();
     }
+
+    #endregion Public Methods
 }

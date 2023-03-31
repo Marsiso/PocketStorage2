@@ -1,5 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
+// file to you under the MIT license.
 #nullable disable
 
 using Domain.Identity.Entities;
@@ -16,8 +16,14 @@ namespace IdentityServer.Areas.Identity.Pages.Account;
 [AllowAnonymous]
 public sealed class RegisterConfirmationModel : PageModel
 {
-    private readonly UserManager<ApplicationUser> _userManager;
+    #region Private Fields
+
     private readonly IEmailSender _sender;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    #endregion Private Fields
+
+    #region Public Constructors
 
     public RegisterConfirmationModel(UserManager<ApplicationUser> userManager, IEmailSender sender)
     {
@@ -25,23 +31,31 @@ public sealed class RegisterConfirmationModel : PageModel
         _sender = sender;
     }
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public string Email { get; set; }
+    #endregion Public Constructors
+
+    #region Public Properties
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     public bool DisplayConfirmAccountLink { get; set; }
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
+    /// </summary>
+    public string Email { get; set; }
+
+    /// <summary>
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     public string EmailConfirmationUrl { get; set; }
+
+    #endregion Public Properties
+
+    #region Public Methods
 
     public async Task<IActionResult> OnGetAsync(string email, string returnUrl = null)
     {
@@ -74,4 +88,6 @@ public sealed class RegisterConfirmationModel : PageModel
 
         return Page();
     }
+
+    #endregion Public Methods
 }

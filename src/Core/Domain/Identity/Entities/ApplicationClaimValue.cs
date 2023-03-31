@@ -2,9 +2,7 @@
 
 public sealed class ApplicationClaimValue
 {
-    public string Type { get; set; } = string.Empty;
-
-    public string Value { get; set; } = string.Empty;
+    #region Public Constructors
 
     public ApplicationClaimValue()
     {
@@ -15,4 +13,14 @@ public sealed class ApplicationClaimValue
         Type = type;
         Value = value;
     }
+
+    #endregion Public Constructors
+
+    #region Public Properties
+
+    public string Type { get; set; } = string.Empty;
+
+    public string Value { get; set; } = string.Empty;
+
+    #endregion Public Properties
 }

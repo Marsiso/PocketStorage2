@@ -1,7 +1,9 @@
-﻿namespace IdentityServer.Helpers;
+﻿namespace IdentityServer.Extensions;
 
 public static class AsyncEnumerableExtensions
 {
+    #region Public Methods
+
     public static Task<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> source)
     {
         if (source == null)
@@ -23,4 +25,6 @@ public static class AsyncEnumerableExtensions
             return list;
         }
     }
+
+    #endregion Public Methods
 }

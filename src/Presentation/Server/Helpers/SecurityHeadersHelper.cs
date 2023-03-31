@@ -1,9 +1,19 @@
 ﻿namespace Server.Helpers;
 
-public static class SecurityHeaders
+/// <summary>
+/// Security header helper class.
+/// </summary>
+public static class SecurityHeadersHelper
 {
-    public static HeaderPolicyCollection GetHeaderPolicyCollection(bool isDevelopmentEnvironment, string idpHost)
+    #region Public Methods
+
+    public static HeaderPolicyCollection GetHeaderPolicyCollection(bool isDevelopmentEnvironment, string identityProviderHost)
     {
+        if (string.IsNullOrEmpty(identityProviderHost))
+        {
+            throw new ArgumentNullException(nameof(identityProviderHost), $"OpenID Connect Identity provider host, parameter {nameof(identityProviderHost)}, cannot be a null or empty string.");
+        }
+
         var policy = new HeaderPolicyCollection()
             .AddFrameOptionsDeny()
             .AddXssProtectionBlock()
@@ -11,25 +21,28 @@ public static class SecurityHeaders
             .AddReferrerPolicyStrictOriginWhenCrossOrigin()
             .AddCrossOriginOpenerPolicy(builder => builder.SameOrigin())
             .AddCrossOriginResourcePolicy(builder => builder.SameOrigin())
-            .AddCrossOriginEmbedderPolicy(builder => builder.RequireCorp()) // remove for dev if using hot reload
+            // Remove for developers if using hot reload
+            .AddCrossOriginEmbedderPolicy(builder => builder.RequireCorp())
             .AddContentSecurityPolicy(builder =>
             {
                 builder.AddObjectSrc().None();
                 builder.AddBlockAllMixedContent();
                 builder.AddImgSrc().Self().From("data:");
-                builder.AddFormAction().Self().From(idpHost);
+                builder.AddFormAction().Self().From(identityProviderHost);
                 builder.AddFontSrc().Self();
                 builder.AddStyleSrc().Self();
                 builder.AddBaseUri().Self();
                 builder.AddFrameAncestors().None();
 
                 // Due to Blazor
-                builder.AddScriptSrc()
+                builder
+                    .AddScriptSrc()
                     .Self()
                     .WithHash256("v8v3RKRPmN4odZ1CWM5gw80QKPCCWMcpNeOmimNL2AA=")
                     .UnsafeEval();
 
-                // Disable script and style CSP protection if using Blazor hot reload (if using hot reload, DO NOT deploy with an insecure CSP)
+                // Disable script and style CSP protection if using Blazor hot reload (if using hot
+                // reload, DO NOT deploy with an insecure CSP)
             })
             .RemoveServerHeader()
             .AddPermissionsPolicy(builder =>
@@ -60,4 +73,6 @@ public static class SecurityHeaders
 
         return policy;
     }
+
+    #endregion Public Methods
 }

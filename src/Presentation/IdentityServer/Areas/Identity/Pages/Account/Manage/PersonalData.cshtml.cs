@@ -1,5 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
+// file to you under the MIT license.
 using Domain.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,8 +9,14 @@ namespace IdentityServer.Areas.Identity.Pages.Account.Manage;
 
 public sealed class PersonalDataModel : PageModel
 {
-    private readonly UserManager<ApplicationUser> _userManager;
+    #region Private Fields
+
     private readonly ILogger<PersonalDataModel> _logger;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    #endregion Private Fields
+
+    #region Public Constructors
 
     public PersonalDataModel(
         UserManager<ApplicationUser> userManager,
@@ -19,6 +25,10 @@ public sealed class PersonalDataModel : PageModel
         _userManager = userManager;
         _logger = logger;
     }
+
+    #endregion Public Constructors
+
+    #region Public Methods
 
     public async Task<IActionResult> OnGet()
     {
@@ -30,4 +40,6 @@ public sealed class PersonalDataModel : PageModel
 
         return Page();
     }
+
+    #endregion Public Methods
 }

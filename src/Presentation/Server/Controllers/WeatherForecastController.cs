@@ -1,12 +1,15 @@
 using Domain;
+using Domain.Constants;
 
 namespace Server.Controllers;
 
 [ValidateAntiForgeryToken]
-[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SystemAdministrator")]
+[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = ApplicationConstants.Roles.SystemAdministrator)]
 [ApiController]
 public sealed class WeatherForecastController : ControllerBase
 {
+    #region Private Fields
+
     private static readonly string[] Summaries = new[]
     {
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -14,10 +17,18 @@ public sealed class WeatherForecastController : ControllerBase
 
     private readonly ILogger<WeatherForecastController> _logger;
 
+    #endregion Private Fields
+
+    #region Public Constructors
+
     public WeatherForecastController(ILogger<WeatherForecastController> logger)
     {
         _logger = logger;
     }
+
+    #endregion Public Constructors
+
+    #region Public Methods
 
     [HttpGet("~/api/weatherForecast")]
     public IEnumerable<WeatherForecast> Get()
@@ -30,4 +41,6 @@ public sealed class WeatherForecastController : ControllerBase
         })
         .ToArray();
     }
+
+    #endregion Public Methods
 }

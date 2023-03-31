@@ -1,5 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
+// file to you under the MIT license.
 #nullable disable
 
 using Domain.Identity.Entities;
@@ -12,9 +12,15 @@ namespace IdentityServer.Areas.Identity.Pages.Account.Manage;
 
 public sealed class ExternalLoginsModel : PageModel
 {
-    private readonly UserManager<ApplicationUser> _userManager;
+    #region Private Fields
+
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserStore<ApplicationUser> _userStore;
+
+    #endregion Private Fields
+
+    #region Public Constructors
 
     public ExternalLoginsModel(
         UserManager<ApplicationUser> userManager,
@@ -26,30 +32,38 @@ public sealed class ExternalLoginsModel : PageModel
         _userStore = userStore;
     }
 
+    #endregion Public Constructors
+
+    #region Public Properties
+
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     public IList<UserLoginInfo> CurrentLogins { get; set; }
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     public IList<AuthenticationScheme> OtherLogins { get; set; }
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     public bool ShowRemoveButton { get; set; }
 
     /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
+    /// be used directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [TempData]
     public string StatusMessage { get; set; }
+
+    #endregion Public Properties
+
+    #region Public Methods
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -72,37 +86,6 @@ public sealed class ExternalLoginsModel : PageModel
 
         ShowRemoveButton = passwordHash != null || CurrentLogins.Count > 1;
         return Page();
-    }
-
-    public async Task<IActionResult> OnPostRemoveLoginAsync(string loginProvider, string providerKey)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
-        }
-
-        var result = await _userManager.RemoveLoginAsync(user, loginProvider, providerKey);
-        if (!result.Succeeded)
-        {
-            StatusMessage = "The external login was not removed.";
-            return RedirectToPage();
-        }
-
-        await _signInManager.RefreshSignInAsync(user);
-        StatusMessage = "The external login was removed.";
-        return RedirectToPage();
-    }
-
-    public async Task<IActionResult> OnPostLinkLoginAsync(string provider)
-    {
-        // Clear the existing external cookie to ensure a clean login process
-        await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-
-        // Request a redirect to the external login provider to link a login for the current user
-        var redirectUrl = Url.Page("./ExternalLogins", pageHandler: "LinkLoginCallback");
-        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl, _userManager.GetUserId(User));
-        return new ChallengeResult(provider, properties);
     }
 
     public async Task<IActionResult> OnGetLinkLoginCallbackAsync()
@@ -133,4 +116,37 @@ public sealed class ExternalLoginsModel : PageModel
         StatusMessage = "The external login was added.";
         return RedirectToPage();
     }
+
+    public async Task<IActionResult> OnPostLinkLoginAsync(string provider)
+    {
+        // Clear the existing external cookie to ensure a clean login process
+        await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+        // Request a redirect to the external login provider to link a login for the current user
+        var redirectUrl = Url.Page("./ExternalLogins", pageHandler: "LinkLoginCallback");
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl, _userManager.GetUserId(User));
+        return new ChallengeResult(provider, properties);
+    }
+
+    public async Task<IActionResult> OnPostRemoveLoginAsync(string loginProvider, string providerKey)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+        }
+
+        var result = await _userManager.RemoveLoginAsync(user, loginProvider, providerKey);
+        if (!result.Succeeded)
+        {
+            StatusMessage = "The external login was not removed.";
+            return RedirectToPage();
+        }
+
+        await _signInManager.RefreshSignInAsync(user);
+        StatusMessage = "The external login was removed.";
+        return RedirectToPage();
+    }
+
+    #endregion Public Methods
 }

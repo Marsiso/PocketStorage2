@@ -6,6 +6,8 @@ namespace Server.Controllers;
 [ApiController]
 public sealed class UserController : ControllerBase
 {
+    #region Public Methods
+
     [HttpGet("~/api/user")]
     [AllowAnonymous]
     public IActionResult GetCurrentUser()
@@ -48,4 +50,6 @@ public sealed class UserController : ControllerBase
 
         return Ok(userInfo);
     }
+
+    #endregion Public Methods
 }

@@ -5,12 +5,22 @@ namespace IdentityServer.Data.Seed;
 
 public sealed class Worker : IHostedService
 {
+    #region Private Fields
+
     private readonly IServiceProvider _serviceProvider;
+
+    #endregion Private Fields
+
+    #region Public Constructors
 
     public Worker(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
+
+    #endregion Public Constructors
+
+    #region Public Methods
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -18,6 +28,7 @@ public sealed class Worker : IHostedService
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
         #region BlazorWasm
+
         if (await manager.FindByClientIdAsync("BlazorWasmClient") == null)
         {
             await manager.CreateAsync(new OpenIddictApplicationDescriptor
@@ -45,11 +56,14 @@ public sealed class Worker : IHostedService
                 Requirements = { Requirements.Features.ProofKeyForCodeExchange }
             });
         }
-        #endregion
+
+        #endregion BlazorWasm
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }
+
+    #endregion Public Methods
 }
