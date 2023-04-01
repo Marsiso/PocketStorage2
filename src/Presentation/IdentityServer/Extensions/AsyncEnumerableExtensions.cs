@@ -8,7 +8,8 @@ public static class AsyncEnumerableExtensions
     {
         if (source == null)
         {
-            throw new ArgumentNullException(nameof(source));
+            const string errorMessage = $"LINQ extension method {nameof(ToListAsync)} cannot take first argument as null reference object.";
+            throw new ArgumentNullException(nameof(source), errorMessage);
         }
 
         return ExecuteAsync();

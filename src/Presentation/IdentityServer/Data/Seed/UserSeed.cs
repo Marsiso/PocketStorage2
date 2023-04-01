@@ -1,5 +1,6 @@
 ﻿using Domain.Constants;
 using Domain.Data;
+using Domain.Helpers;
 using Domain.Identity.Entities;
 using LanguageExt.Common;
 using Microsoft.AspNetCore.Identity;
@@ -16,240 +17,145 @@ public sealed class UserSeed : IHostedService
 
     #endregion Private Fields
 
+    private record UserWithRoles(ApplicationUser Value, string Password, IReadOnlyCollection<ApplicationRole> Roles);
+
     #region Private Methods
 
-    private async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager)
+    private ICollection<UserWithRoles> GetUsersWithRoles()
     {
-        Func<Exception, ApplicationRole> LogUserRoleCreationExceptionFunc = (exception) =>
+        return new Collection<UserWithRoles>()
         {
-            _logger.LogError(exception.Message);
-            return default!;
+            new(
+                Value: new ApplicationUser
+                {
+                    Email = "system.admin@provider.dev",
+                    UserName = "system.admin@provider.dev",
+                    FirstName = "System",
+                    MiddleName = "Administrator",
+                    LastName = "User",
+                    Alias = "SysAdmin",
+                    EmailConfirmed = true,
+                    IsActive = true
+                },
+                Password: "Pass123$systemAdministrator",
+                Roles: ApplicationConstants.Roles.SystemAdministrator.GetSubRoles()
+            ),
+            new (
+                Value: new ApplicationUser
+                {
+                    Email = "tenant.admin@provider.dev",
+                    UserName = "tenant.admin@provider.dev",
+                    FirstName = "Tenant",
+                    MiddleName = "Administrator",
+                    LastName = "User",
+                    Alias = "TenantAdmin",
+                    EmailConfirmed = true,
+                    IsActive = true
+                },
+                Password: "Pass123$tenantAdministrator",
+                Roles: ApplicationConstants.Roles.TenantAdministrator.GetSubRoles()
+            ),
+            new(
+                Value: new ApplicationUser
+                {
+                    Email = "default.access@provider.dev",
+                    UserName = "default.access@provider.dev",
+                    FirstName = "Default",
+                    LastName = "Access",
+                    Alias = "DefaultAccess",
+                    EmailConfirmed = true,
+                    IsActive = true
+                },
+                Password: "Pass123$defaultAccess",
+                Roles: ApplicationConstants.Roles.DefaultAccess.GetSubRoles()
+            )
         };
-
-        #region System Administrator
-
-        var systemAdminRole = new ApplicationRole
-        {
-            Name = ApplicationConstants.Roles.SystemAdministrator,
-            Description = "System administrator role with permission to create, edit, delete and view resources.",
-            IsActive = true
-        };
-
-        Result<ApplicationRole> result = await systemAdminRole.TryCreateAsync(roleManager);
-        ApplicationRole systemAdminRoleEntity = result.Match(applicationRole =>
-        {
-            string message = $"System administrator role with ID {applicationRole.Id} has been successfully created.";
-            _logger.LogInformation(message);
-            return applicationRole;
-        }, LogUserRoleCreationExceptionFunc);
-
-        result = await systemAdminRoleEntity.TryAddPermissionsAsync(roleManager,
-            new Collection<string>()
-            {
-                ApplicationConstants.Persmissions.Create,
-                ApplicationConstants.Persmissions.Edit,
-                ApplicationConstants.Persmissions.Delete,
-                ApplicationConstants.Persmissions.View
-            });
-
-        _ = result.Match(applicationRole =>
-        {
-            string message = string.Format("System administrator role with ID {0} has been successfully assigned with permissions {1}, {2}, {3}, {4}.",
-                applicationRole.Id,
-                ApplicationConstants.Persmissions.Create,
-                ApplicationConstants.Persmissions.Edit,
-                ApplicationConstants.Persmissions.Delete,
-                ApplicationConstants.Persmissions.View);
-            _logger.LogInformation(message);
-            return applicationRole;
-        }, LogUserRoleCreationExceptionFunc);
-
-        #endregion System Administrator
-
-        #region Tenant Administrator
-
-        var tenantAdminRole = new ApplicationRole
-        {
-            Name = ApplicationConstants.Roles.TenantAdministrator,
-            Description = "Tenant administrator role with permission to create, edit and view resources.",
-            IsActive = true
-        };
-
-        result = await tenantAdminRole.TryCreateAsync(roleManager);
-        ApplicationRole tenantAdminRoleEntity = result.Match(applicationRole =>
-        {
-            string message = $"Tenant administrator role with ID {applicationRole.Id} has been successfully created.";
-            _logger.LogInformation(message);
-            return applicationRole;
-        }, LogUserRoleCreationExceptionFunc);
-
-        result = await tenantAdminRoleEntity.TryAddPermissionsAsync(roleManager,
-            new Collection<string>()
-            {
-                ApplicationConstants.Persmissions.Create,
-                ApplicationConstants.Persmissions.Edit,
-                ApplicationConstants.Persmissions.View
-            });
-
-        _ = result.Match(applicationRole =>
-        {
-            string message = string.Format("Tenant administrator role with ID {0} has been successfully assigned with permissions {1}, {2}, {3}.",
-                applicationRole.Id,
-                ApplicationConstants.Persmissions.Create,
-                ApplicationConstants.Persmissions.Edit,
-                ApplicationConstants.Persmissions.View);
-            _logger.LogInformation(message);
-            return applicationRole;
-        }, LogUserRoleCreationExceptionFunc);
-
-        #endregion Tenant Administrator
-
-        #region Default Access
-
-        var defaultAccessRole = new ApplicationRole
-        {
-            Name = ApplicationConstants.Roles.DefaultAccess,
-            Description = "Default access role with permission to view resources.",
-            IsActive = true
-        };
-
-        result = await defaultAccessRole.TryCreateAsync(roleManager);
-        ApplicationRole defaultAccessRoleEntity = result.Match(applicationRole =>
-        {
-            string message = $"Default access role with ID {applicationRole.Id} has been successfully created.";
-            _logger.LogInformation(message);
-            return applicationRole;
-        }, LogUserRoleCreationExceptionFunc);
-
-        result = await defaultAccessRoleEntity.TryAddPermissionAsync(roleManager, ApplicationConstants.Persmissions.View);
-        _ = result.Match(applicationRole =>
-        {
-            string message = $"Default access role with ID {applicationRole.Id} has been successfully assigned with permission {ApplicationConstants.Persmissions.View}.";
-            _logger.LogInformation(message);
-            return applicationRole;
-        }, LogUserRoleCreationExceptionFunc);
-
-        #endregion Default Access
     }
 
-    private async Task SeedUsersAsync(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+    private async Task SeedUserAsync(
+        UserManager<ApplicationUser> userManager,
+        RoleManager<ApplicationRole> roleManager,
+        UserWithRoles user)
     {
-        Func<Exception, ApplicationUser> LogUserCreationExceptionFunc = (exception) =>
+        Result<ApplicationUser> result = await user.Value.TryCreateAsync(userManager, user.Password);
+        ApplicationUser userEntity = result.Match(
+            appUser =>
+            {
+                string message = $"User with ID {appUser.Id} and email adress {appUser.Email} has been successfully created.";
+                _logger.LogInformation(message);
+
+                return appUser;
+            },
+            exception =>
+            {
+                _logger.LogError(exception.Message);
+                return default!;
+            });
+
+        if (userEntity != null)
         {
-            _logger.LogError(exception.Message);
-            return default!;
-        };
-
-        #region System Administrator
-
-        ApplicationUser systemUser = new()
-        {
-            Email = "system.admin@provider.dev",
-            UserName = "system.admin@provider.dev",
-            FirstName = "System",
-            MiddleName = "Administrator",
-            LastName = "User",
-            Alias = "SysAdmin",
-            EmailConfirmed = true,
-            IsActive = true
-        };
-
-        const string systemUserPassword = "Pass123$systemAdministrator";
-
-        Result<ApplicationUser> result = await systemUser.TryCreateAsync(userManager, systemUserPassword);
-        ApplicationUser systemUserEntity = result.Match(
-            applicationUser => { string message = $"System Administrator user with ID {applicationUser.Id} has been successfully created."; _logger.LogInformation(message); return applicationUser; },
-            LogUserCreationExceptionFunc);
-
-        if (systemUserEntity != null)
-        {
-            result = await systemUserEntity.TryAssignRolesAsync(
+            result = await userEntity.TryAssignRolesAsync(
                 userManager,
                 roleManager,
-                new string[] { ApplicationConstants.Roles.SystemAdministrator, ApplicationConstants.Roles.TenantAdministrator, ApplicationConstants.Roles.DefaultAccess });
+                user.Roles);
             _ = result.Match(
-                applicationUser =>
+                appUser =>
                 {
-                    string message = string.Format(
-                    "System Administrator user with ID {0} has been successfully assigned roles {1}, {2}, {3}.",
-                    applicationUser.Id,
-                    ApplicationConstants.Roles.SystemAdministrator,
-                    ApplicationConstants.Roles.TenantAdministrator,
-                    ApplicationConstants.Roles.DefaultAccess); _logger.LogInformation(message); return applicationUser;
-                },
-                LogUserCreationExceptionFunc);
-        }
+                    string message = $"User with ID {appUser.Id} and email adress {appUser.Email} has been successfully assigned roles {string.Join(", ", user.Roles)}.";
+                    _logger.LogInformation(message);
 
-        #endregion System Administrator
-
-        #region Tenant Administrator
-
-        ApplicationUser tenantUser = new()
-        {
-            Email = "tenant.admin@provider.dev",
-            UserName = "tenant.admin@provider.dev",
-            FirstName = "Tenant",
-            MiddleName = "Administrator",
-            LastName = "User",
-            Alias = "TenantAdmin",
-            EmailConfirmed = true,
-            IsActive = true
-        };
-
-        const string tenantUserPassword = "Pass123$tenantAdministrator";
-
-        result = await tenantUser.TryCreateAsync(userManager, tenantUserPassword);
-        ApplicationUser tenantUserEntity = result.Match(
-            applicationUser => { string message = $"Tenant Administrator user with ID {applicationUser.Id} has been successfully created."; _logger.LogInformation(message); return applicationUser; },
-            LogUserCreationExceptionFunc);
-
-        if (tenantUserEntity != null)
-        {
-            result = await tenantUserEntity.TryAssignRolesAsync(userManager, roleManager,
-                new string[] { ApplicationConstants.Roles.TenantAdministrator, ApplicationConstants.Roles.DefaultAccess });
-            _ = result.Match(
-                applicationUser =>
+                    return appUser;
+                }, exception =>
                 {
-                    var message = string.Format(
-                    "Tenant Administrator user with ID {0} has been successfully assigned roles {1}, {2}.",
-                    applicationUser.Id,
-                    ApplicationConstants.Roles.TenantAdministrator,
-                    ApplicationConstants.Roles.DefaultAccess); _logger.LogInformation(message); return applicationUser;
-                },
-                LogUserCreationExceptionFunc);
+                    _logger.LogError(exception.Message);
+                    return default!;
+                });
         }
+    }
 
-        #endregion Tenant Administrator
-
-        #region Default Access
-
-        ApplicationUser defaultUser = new()
+    private async Task SeedRolesAsync(
+        RoleManager<ApplicationRole> roleManager,
+        UserWithRoles user)
+    {
+        foreach (var role in user.Roles)
         {
-            Email = "default.access@provider.dev",
-            UserName = "default.access@provider.dev",
-            FirstName = "Default",
-            LastName = "Access",
-            Alias = "DefaultAccess",
-            EmailConfirmed = true,
-            IsActive = true
-        };
+            Result<ApplicationRole> result = await role.TryCreateAsync(roleManager);
+            ApplicationRole roleEntity = result.Match(appRole =>
+            {
+                string message = $"Role {appRole.Name} with ID {appRole.Id} has been successfully created.";
+                _logger.LogInformation(message);
+                return appRole;
+            }, exception =>
+            {
+                _logger.LogError(exception.Message);
+                return default!;
+            });
 
-        const string defaultUserPassword = "Pass123$defaultAccess";
+            IReadOnlyCollection<string> permissions = role.GetRolePermissions();
+            result = await roleEntity.TryAddPermissionsAsync(roleManager, permissions);
 
-        result = await defaultUser.TryCreateAsync(userManager, defaultUserPassword);
-        ApplicationUser defaultUserEntity = result.Match(
-            applicationUser => { string message = $"Default Access user with ID {applicationUser.Id} has been successfully created."; _logger.LogInformation(message); return applicationUser; },
-            LogUserCreationExceptionFunc);
-
-        if (defaultUserEntity != null)
-        {
-            result = await defaultUserEntity.TryAssignRoleAsync(userManager, roleManager);
-            _ = result.Match(
-                applicationUser => { string message = string.Format("Default Access user with ID {0} has been successfully assigned role {1}.", applicationUser.Id, ApplicationConstants.Roles.DefaultAccess); _logger.LogInformation(message); return applicationUser; },
-                LogUserCreationExceptionFunc);
+            _ = result.Match(appRole =>
+            {
+                string message = $"Role {appRole.Name} with ID {appRole.Id} has been successfully assigned with permissions {string.Join(", ", permissions)}.";
+                _logger.LogInformation(message);
+                return appRole;
+            }, exception =>
+            {
+                _logger.LogError(exception.Message);
+                return default!;
+            });
         }
+    }
 
-        #endregion Default Access
+    private async Task SeedAsync(
+        UserManager<ApplicationUser> userManager,
+        RoleManager<ApplicationRole> roleManager)
+    {
+        foreach (var user in GetUsersWithRoles())
+        {
+            await SeedRolesAsync(roleManager, user);
+            await SeedUserAsync(userManager, roleManager, user);
+        }
     }
 
     #endregion Private Methods
@@ -276,17 +182,18 @@ public sealed class UserSeed : IHostedService
             UserManager<ApplicationUser>? userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             if (userManager == null)
             {
-                throw new ArgumentNullException(nameof(userManager), $"User Manager cannot be a null object. Parameter: {nameof(userManager)} Value: {userManager}");
+                string errorMessage = $"User Manager cannot be a null reference object. Parameter: {nameof(userManager)} Value: {userManager}";
+                throw new ArgumentNullException(nameof(userManager), errorMessage);
             }
 
             RoleManager<ApplicationRole>? roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
             if (roleManager == null)
             {
-                throw new ArgumentNullException(nameof(roleManager), $"User Manager cannot be a null object. Parameter: {nameof(roleManager)} Value: {roleManager}");
+                string errorMessage = $"User Manager cannot be a null object. Parameter: {nameof(roleManager)} Value: {roleManager}";
+                throw new ArgumentNullException(nameof(roleManager), errorMessage);
             }
 
-            await SeedRolesAsync(roleManager);
-            await SeedUsersAsync(userManager, roleManager);
+            await SeedAsync(userManager, roleManager);
         }
     }
 

@@ -27,5 +27,12 @@ public static class ApplicationConstants
         #endregion Public Fields
     }
 
+    public static class Descriptions
+    {
+        public const string DefaultAccess = "Default access role with permission to view resources.";
+        public const string SystemAdministrator = "System administrator role with permission to create, edit, delete and view resources.";
+        public const string TenantAdministrator = "Tenant administrator role with permission to create, edit and view resources.";
+    }
+
     #endregion Public Classes
 }

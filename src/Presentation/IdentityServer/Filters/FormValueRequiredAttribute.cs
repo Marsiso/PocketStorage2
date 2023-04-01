@@ -24,20 +24,12 @@ public sealed class FormValueRequiredAttribute : ActionMethodSelectorAttribute
 
     public override bool IsValidForRequest(RouteContext routeContext, ActionDescriptor action)
     {
-        if (string.Equals(routeContext.HttpContext.Request.Method, "GET", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(routeContext.HttpContext.Request.Method, "HEAD", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(routeContext.HttpContext.Request.Method, "DELETE", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(routeContext.HttpContext.Request.Method, "TRACE", StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        if (string.IsNullOrEmpty(routeContext.HttpContext.Request.ContentType))
-        {
-            return false;
-        }
-
-        if (!routeContext.HttpContext.Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(routeContext.HttpContext.Request.Method, "GET", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(routeContext.HttpContext.Request.Method, "HEAD", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(routeContext.HttpContext.Request.Method, "DELETE", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(routeContext.HttpContext.Request.Method, "TRACE", StringComparison.OrdinalIgnoreCase)
+            || string.IsNullOrEmpty(routeContext.HttpContext.Request.ContentType)
+            || !routeContext.HttpContext.Request.ContentType.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }

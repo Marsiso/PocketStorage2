@@ -1,4 +1,5 @@
 ﻿using Domain.Constants;
+using Domain.Helpers;
 using LanguageExt.Common;
 using LanguageExt.Pipes;
 using Microsoft.AspNetCore.Identity;
@@ -98,22 +99,22 @@ public sealed class ApplicationUser : IdentityUser<Guid>, ICloneable
     private async Task<Result<ApplicationUser>> TryAddToRoleAsync(
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
-        string role = ApplicationConstants.Roles.DefaultAccess)
+        ApplicationRole role)
     {
         try
         {
-            if (!await roleManager.RoleExistsAsync(role))
+            if (!await roleManager.RoleExistsAsync(role.Name))
             {
                 string errorMessage = $"User role does not exist in the database. Parameter name: {nameof(role)} Value: {role}";
                 return new Result<ApplicationUser>(new NullReferenceException(errorMessage));
             }
 
-            if (await userManager.IsInRoleAsync(this, role))
+            if (await userManager.IsInRoleAsync(this, role.Name))
             {
                 return this;
             }
 
-            IdentityResult result = await userManager.AddToRoleAsync(this, role);
+            IdentityResult result = await userManager.AddToRoleAsync(this, role.Name);
             if (!result.Succeeded)
             {
                 return new Result<ApplicationUser>(new ArgumentNullException(nameof(result.Errors),
@@ -138,42 +139,6 @@ public sealed class ApplicationUser : IdentityUser<Guid>, ICloneable
     }
 
     /// <summary>
-    /// Assigns <paramref name="role"/> to <paramref name="user"/>. If <paramref name="role"/> was
-    /// not provided than the <see cref="DefaultIdentityConstants.DefaultAccessRole"/> is assigned instead.
-    /// </summary>
-    /// <param name="userManager">See <see cref="UserManager{TUser}"/> for further details.</param>
-    /// <param name="roleManager">See <see cref="RoleManager{TRole}"/> for further details.</param>
-    /// <param name="role"><see cref="ApplicationRole"/> to be assigned to the <paramref name="user"/>.</param>
-    /// <returns>
-    /// An user <paramref name="role"/> assignment result containing <paramref name="user"/> object
-    /// with potential errors.
-    /// </returns>
-    public async Task<Result<ApplicationUser>> TryAssignRoleAsync(
-        UserManager<ApplicationUser>? userManager,
-        RoleManager<ApplicationRole>? roleManager,
-        string? role = default)
-    {
-        if (userManager == null)
-        {
-            string errorMessage = $"User manager object for application user cannot be null. Parameter name: {nameof(userManager)} Value: {userManager}";
-            return new Result<ApplicationUser>(new ArgumentNullException(nameof(userManager), errorMessage));
-        }
-
-        if (roleManager == null)
-        {
-            string errorMessage = $"Role manager object for application user cannot be null. Parameter name: {nameof(userManager)} Value: {userManager}";
-            return new Result<ApplicationUser>(new ArgumentNullException(nameof(roleManager), errorMessage));
-        }
-
-        if (role == null)
-        {
-            return await TryAddToRoleAsync(userManager, roleManager);
-        }
-
-        return await TryAddToRoleAsync(userManager, roleManager, role);
-    }
-
-    /// <summary>
     /// Assigns <paramref name="roles"/> to <paramref name="user"/>. If <paramref name="roles"/>
     /// collection is either a null object or an empty collection than the default role is assigned instead.
     /// </summary>
@@ -189,7 +154,7 @@ public sealed class ApplicationUser : IdentityUser<Guid>, ICloneable
     public async Task<Result<ApplicationUser>> TryAssignRolesAsync(
         UserManager<ApplicationUser>? userManager,
         RoleManager<ApplicationRole>? roleManager,
-        string[]? roles = default)
+        IReadOnlyCollection<ApplicationRole>? roles = default)
     {
         if (userManager == null)
         {
@@ -203,14 +168,16 @@ public sealed class ApplicationUser : IdentityUser<Guid>, ICloneable
             return new Result<ApplicationUser>(new ArgumentNullException(nameof(roleManager), errorMessage));
         }
 
-        if (roles == null)
-        {
-            return await TryAddToRoleAsync(userManager, roleManager);
-        }
-
+        roles ??= ApplicationConstants.Roles.DefaultAccess.GetSubRoles();
         foreach (var role in roles)
         {
-            Result<ApplicationUser> result = await TryAddToRoleAsync(userManager, roleManager, role);
+            Result<ApplicationUser> result;
+            if (role == null)
+            {
+                continue;
+            }
+
+            result = await TryAddToRoleAsync(userManager, roleManager, role);
             if (!result.IsSuccess)
             {
                 return result;
@@ -230,7 +197,7 @@ public sealed class ApplicationUser : IdentityUser<Guid>, ICloneable
     /// </returns>
     public async Task<Result<ApplicationUser>> TryCreateAsync(
         UserManager<ApplicationUser>? userManager,
-        string? userPassword)
+        string userPassword)
     {
         if (userManager == null)
         {
@@ -240,10 +207,10 @@ public sealed class ApplicationUser : IdentityUser<Guid>, ICloneable
 
         try
         {
-            var userInDb = await userManager.FindByEmailAsync(Email ?? string.Empty);
+            var userInDb = await userManager.FindByEmailAsync(Email);
             if (userInDb == null)
             {
-                var result = await userManager.CreateAsync(this, userPassword ?? string.Empty);
+                var result = await userManager.CreateAsync(this, userPassword);
                 if (!result.Succeeded)
                 {
                     return new Result<ApplicationUser>(new ArgumentNullException(nameof(result.Errors),

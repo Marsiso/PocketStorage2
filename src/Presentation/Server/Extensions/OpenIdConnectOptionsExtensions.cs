@@ -11,20 +11,20 @@ public static class OpenIdConnectOptionsExtensions
     {
         if (string.IsNullOrEmpty(authority))
         {
-            throw new ArgumentNullException(nameof(authority),
-                $"OpenID Connect authority cannot be a null or empty string. Parameter name: {nameof(authority)} Value: {authority}");
+            string errorMessage = $"OpenID Connect authority cannot be a null or empty string. Parameter name: {nameof(authority)} Value: {authority}";
+            throw new ArgumentNullException(nameof(authority), errorMessage);
         }
 
         if (string.IsNullOrEmpty(clientId))
         {
-            throw new ArgumentNullException(nameof(clientId),
-                $"OpenID Connect client ID cannot be a null or empty string. Parameter name: {nameof(clientId)} Value: {clientId}");
+            string errorMessage = $"OpenID Connect client ID cannot be a null or empty string. Parameter name: {nameof(clientId)} Value: {clientId}";
+            throw new ArgumentNullException(nameof(clientId), errorMessage);
         }
 
         if (string.IsNullOrEmpty(clientSecret))
         {
-            throw new ArgumentNullException(nameof(clientSecret),
-                $"OpenID Connect client secret cannot be a null or empty string. Parameter name: {nameof(clientSecret)} Value: {clientSecret}");
+            string errorMessage = $"OpenID Connect client secret cannot be a null or empty string. Parameter name: {nameof(clientSecret)} Value: {clientSecret}";
+            throw new ArgumentNullException(nameof(clientSecret), errorMessage);
         }
 
         options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;

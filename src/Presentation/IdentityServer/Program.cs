@@ -9,6 +9,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddDbContext<ApplicationDatabaseContext>(options => options.Configure(builder, connectionString, nameof(IdentityServer)));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -52,18 +53,18 @@ builder.Services.AddAuthentication()
     // For further details about Google external login setup in ASP.NET Core see https://learn.microsoft.com/en-us/aspnet/core/security/authentication/social/google-logins?view=aspnetcore-7.0
     .AddGoogle(options =>
     {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+        options.ClientId = builder.Configuration["Clients:Google:Id"]!;
+        options.ClientSecret = builder.Configuration["Clients:Google:Secret"]!;
     })
     .AddFacebook(options =>
     {
-        options.ClientId = builder.Configuration["Authentication:Facebook:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:Facebook:ClientSecret"]!;
+        options.ClientId = builder.Configuration["Clients:Facebook:Id"]!;
+        options.ClientSecret = builder.Configuration["Clients:Facebook:Secret"]!;
     })
     .AddMicrosoftAccount(options =>
     {
-        options.ClientId = builder.Configuration["Authentication:MicrosoftAccount:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:MicrosoftAccount:ClientSecret"]!;
+        options.ClientId = builder.Configuration["Clients:MicrosoftAccount:Id"]!;
+        options.ClientSecret = builder.Configuration["Clients:MicrosoftAccount:Secret"]!;
     });
 
 builder.Services.AddControllersWithViews();

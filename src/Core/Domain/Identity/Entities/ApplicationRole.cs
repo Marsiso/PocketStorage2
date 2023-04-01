@@ -1,4 +1,4 @@
-﻿using Domain.Constants;
+﻿using Domain.Helpers;
 using LanguageExt;
 using LanguageExt.Common;
 using Microsoft.AspNetCore.Identity;
@@ -38,31 +38,6 @@ public sealed class ApplicationRole : IdentityRole<Guid>
         return this;
     }
 
-    public async Task<Result<ApplicationRole>> TryAddPermissionAsync(RoleManager<ApplicationRole> roleManager, string? permission = ApplicationConstants.Persmissions.View)
-    {
-        if (roleManager == null)
-        {
-            string errorMessage = $"Role manager object for application user cannot be null. Parameter name: {nameof(roleManager)} Value: {roleManager}";
-            return new Result<ApplicationRole>(new ArgumentNullException(nameof(roleManager), errorMessage));
-        }
-
-        try
-        {
-            permission ??= ApplicationConstants.Persmissions.View;
-            IList<Claim> claims = await roleManager.GetClaimsAsync(this);
-            if (!claims.Any(claim => claim.Type == "Permission" && claim.Value == permission))
-            {
-                await roleManager.AddClaimAsync(this, new Claim("Permission", permission));
-            }
-        }
-        catch (Exception exception)
-        {
-            return new Result<ApplicationRole>(exception);
-        }
-
-        return this;
-    }
-
     public async Task<Result<ApplicationRole>> TryAddPermissionsAsync(RoleManager<ApplicationRole> roleManager, IReadOnlyCollection<string>? permissions = default)
     {
         if (roleManager == null)
@@ -73,7 +48,7 @@ public sealed class ApplicationRole : IdentityRole<Guid>
 
         try
         {
-            permissions ??= new List<string>() { ApplicationConstants.Persmissions.View };
+            permissions ??= this.GetRolePermissions();
             IList<Claim> claims = await roleManager.GetClaimsAsync(this);
             foreach (var permission in permissions)
             {
@@ -101,7 +76,7 @@ public sealed class ApplicationRole : IdentityRole<Guid>
 
         try
         {
-            ApplicationRole? roleEntity = await roleManager.FindByNameAsync(this.Name!);
+            ApplicationRole? roleEntity = await roleManager.FindByNameAsync(Name);
             if (roleEntity == null)
             {
                 IdentityResult identityResult = await roleManager.CreateAsync(this);

@@ -26,19 +26,28 @@ public sealed class Worker : IHostedService
     {
         using var scope = _serviceProvider.CreateScope();
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
         #region BlazorWasm
 
-        if (await manager.FindByClientIdAsync("BlazorWasmClient") == null)
+        if (await manager.FindByClientIdAsync(configuration["Clients:BlazorWebAssembly:Id"]!) == null)
         {
             await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
-                ClientId = "BlazorWasmClient",
-                ClientSecret = "BlazorWasmClient-Secret",
+                ClientId = configuration["Clients:BlazorWebAssembly:Id"]!,
+                ClientSecret = configuration["Clients:BlazorWebAssembly:Secret"]!,
                 ConsentType = ConsentTypes.Explicit,
-                DisplayName = "Blazor WebAssembly Application",
-                RedirectUris = { new Uri("https://localhost:5001/signin-oidc"), new Uri("https://localhost:44132/signin-oidc") },
-                PostLogoutRedirectUris = { new Uri("https://localhost:5001/signout-callback-oidc"), new Uri("https://localhost:44132/signout-callback-oidc") },
+                DisplayName = configuration["Clients:BlazorWebAssembly:DisplayName"]!,
+                RedirectUris =
+                {
+                    new Uri("https://localhost:5001/signin-oidc"),
+                    new Uri("https://localhost:44132/signin-oidc")
+                },
+                PostLogoutRedirectUris =
+                {
+                    new Uri("https://localhost:5001/signout-callback-oidc"),
+                    new Uri("https://localhost:44132/signout-callback-oidc")
+                },
                 Permissions =
                 {
                     Permissions.Endpoints.Authorization,
@@ -51,7 +60,7 @@ public sealed class Worker : IHostedService
                     Permissions.Scopes.Email,
                     Permissions.Scopes.Profile,
                     Permissions.Scopes.Roles,
-                    Permissions.Prefixes.Scope + "offline_access"
+                    Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OfflineAccess
                 },
                 Requirements = { Requirements.Features.ProofKeyForCodeExchange }
             });
