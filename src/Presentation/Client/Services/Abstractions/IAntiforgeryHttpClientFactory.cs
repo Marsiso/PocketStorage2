@@ -1,4 +1,6 @@
-﻿namespace Client.Services.Abstractions;
+﻿using Domain.Constants.Security.Authorization;
+
+namespace Client.Services.Abstractions;
 
 public interface IAntiforgeryHttpClientFactory
 {

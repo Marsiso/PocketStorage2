@@ -8,7 +8,7 @@ public static class AsyncEnumerableExtensions
     {
         if (source == null)
         {
-            const string errorMessage = $"LINQ extension method {nameof(ToListAsync)} cannot take first argument as null reference object.";
+            string errorMessage = $"[{nameof(AsyncEnumerableExtensions)}] Null reference exception. Parameter: '{nameof(source)}' Value: '{null}'";
             throw new ArgumentNullException(nameof(source), errorMessage);
         }
 
@@ -16,7 +16,7 @@ public static class AsyncEnumerableExtensions
 
         async Task<List<T>> ExecuteAsync()
         {
-            var list = new List<T>();
+            List<T> list = new List<T>();
 
             await foreach (var element in source)
             {

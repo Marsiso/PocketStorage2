@@ -1,11 +1,10 @@
 ﻿global using Client;
 global using Client.Services;
 global using Client.Services.Abstractions;
-global using Domain;
 global using Domain.Constants;
-global using Domain.Identity.Entities;
-global using Infrastructure.Security.Authorization;
-global using Infrastructure.Security.XSS;
+global using Domain.Constants.Security.Authorization;
+global using Domain.Constants.Security.XSS;
+global using Domain.Data.Models.Identity;
 global using Microsoft.AspNetCore.Components.Authorization;
 global using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 global using Microsoft.Extensions.DependencyInjection.Extensions;

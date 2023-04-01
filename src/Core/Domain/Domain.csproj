@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Enums\**" />
+    <EmbeddedResource Remove="Enums\**" />
+    <None Remove="Enums\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="LanguageExt.Core" Version="4.4.2" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="7.0.4" />
@@ -27,11 +33,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Shared\Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Identity\Extensions\" />
-    <Folder Include="Enums\" />
   </ItemGroup>
 
 </Project>

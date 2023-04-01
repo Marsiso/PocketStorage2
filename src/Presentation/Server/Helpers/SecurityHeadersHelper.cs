@@ -7,14 +7,10 @@ public static class SecurityHeadersHelper
 {
     #region Public Methods
 
-    public static HeaderPolicyCollection GetHeaderPolicyCollection(bool isDevelopmentEnvironment, string identityProviderHost)
+    public static HeaderPolicyCollection GetHeaderPolicyCollection(WebApplication application)
     {
-        if (string.IsNullOrEmpty(identityProviderHost))
-        {
-            throw new ArgumentNullException(nameof(identityProviderHost), $"OpenID Connect Identity provider host, parameter {nameof(identityProviderHost)}, cannot be a null or empty string.");
-        }
-
-        var policy = new HeaderPolicyCollection()
+        string identityProviderHost = application.Configuration["OpenIdConnect:Authority"] ?? string.Empty;
+        HeaderPolicyCollection policyCollection = new HeaderPolicyCollection()
             .AddFrameOptionsDeny()
             .AddXssProtectionBlock()
             .AddContentTypeOptionsNoSniff()
@@ -63,15 +59,15 @@ public static class SecurityHeadersHelper
                 builder.AddUsb().None();
             });
 
-        if (!isDevelopmentEnvironment)
+        if (!application.Environment.IsDevelopment())
         {
             // MaxAge = one year in seconds
-            policy.AddStrictTransportSecurityMaxAgeIncludeSubDomains();
+            policyCollection.AddStrictTransportSecurityMaxAgeIncludeSubDomains();
         }
 
-        policy.ApplyDocumentHeadersToAllResponses();
+        policyCollection.ApplyDocumentHeadersToAllResponses();
 
-        return policy;
+        return policyCollection;
     }
 
     #endregion Public Methods

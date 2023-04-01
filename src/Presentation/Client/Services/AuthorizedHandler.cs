@@ -21,7 +21,7 @@ public sealed class AuthorizedHandler : DelegatingHandler
         HttpResponseMessage responseMessage;
         if (authState.User.Identity != null && !authState.User.Identity.IsAuthenticated)
         {
-            // if user is not authenticated, immediately set response status to 401 Unauthorized
+            // If user is not authenticated, immediately set response status to 401 Unauthorized.
             responseMessage = new HttpResponseMessage(HttpStatusCode.Unauthorized);
         }
         else
@@ -31,7 +31,7 @@ public sealed class AuthorizedHandler : DelegatingHandler
 
         if (responseMessage.StatusCode == HttpStatusCode.Unauthorized)
         {
-            // if server returned 401 Unauthorized, redirect to login page
+            // If server returned 401 Unauthorized, redirect to login page.
             _authenticationStateProvider.SignIn();
         }
 

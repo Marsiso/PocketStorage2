@@ -2,8 +2,10 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 var services = builder.Services;
 
-services.AddOptions();
-services.AddAuthorizationCore();
+services
+    .AddOptions()
+    .AddAuthorizationCore();
+
 services.TryAddSingleton<AuthenticationStateProvider, HostAuthenticationStateProvider>();
 services.TryAddSingleton(sp => (HostAuthenticationStateProvider)sp.GetRequiredService<AuthenticationStateProvider>());
 services.AddTransient<AuthorizedHandler>();
@@ -22,7 +24,7 @@ services.AddHttpClient(AuthorizationDefaults.AuthorizedClientName, client =>
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 }).AddHttpMessageHandler<AuthorizedHandler>();
 
-services.AddTransient(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("default"));
+services.AddTransient(serviceProvider => serviceProvider.GetRequiredService<IHttpClientFactory>().CreateClient("default"));
 services.AddTransient<IAntiforgeryHttpClientFactory, AntiforgeryHttpClientFactory>();
 
 await builder.Build().RunAsync();

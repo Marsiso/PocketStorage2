@@ -1,26 +1,12 @@
-﻿using IdentityServer.Models;
+﻿using IdentityServer.Controllers.Web.Base;
+using IdentityServer.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace IdentityServer.Controllers;
 
-public sealed class HomeController : Controller
+public sealed class HomeController : BaseWebController<HomeController>
 {
-    #region Private Fields
-
-    private readonly ILogger<HomeController> _logger;
-
-    #endregion Private Fields
-
-    #region Public Constructors
-
-    public HomeController(ILogger<HomeController> logger)
-    {
-        _logger = logger;
-    }
-
-    #endregion Public Constructors
-
     #region Public Methods
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

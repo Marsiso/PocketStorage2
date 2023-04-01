@@ -24,20 +24,27 @@ public sealed class Worker : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
-        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        using IServiceScope scope = _serviceProvider.CreateScope();
+        IOpenIddictApplicationManager manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        IConfiguration configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
         #region BlazorWasm
 
-        if (await manager.FindByClientIdAsync(configuration["Clients:BlazorWebAssembly:Id"]!) == null)
+        string clientId = configuration["Clients:BlazorWebAssembly:Id"]
+            ?? throw new NullReferenceException($"[{nameof(Worker)}] Null reference exception. Variable: '{nameof(clientId)}' Value: '{null}'");
+        string clientSecret = configuration["Clients:BlazorWebAssembly:Secret"]
+            ?? throw new NullReferenceException($"[{nameof(Worker)}] Null reference exception. Variable: '{nameof(clientSecret)}' Value: '{null}'");
+        string clientDisplayName = configuration["Clients:BlazorWebAssembly:DisplayName"]
+            ?? throw new NullReferenceException($"[{nameof(Worker)}] Null reference exception. Variable: '{nameof(clientDisplayName)}' Value: '{null}'");
+
+        if (await manager.FindByClientIdAsync(clientId) == null)
         {
             await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
-                ClientId = configuration["Clients:BlazorWebAssembly:Id"]!,
-                ClientSecret = configuration["Clients:BlazorWebAssembly:Secret"]!,
+                ClientId = clientId,
+                ClientSecret = clientSecret,
                 ConsentType = ConsentTypes.Explicit,
-                DisplayName = configuration["Clients:BlazorWebAssembly:DisplayName"]!,
+                DisplayName = clientDisplayName,
                 RedirectUris =
                 {
                     new Uri("https://localhost:5001/signin-oidc"),

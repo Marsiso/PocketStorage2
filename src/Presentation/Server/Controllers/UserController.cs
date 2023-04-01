@@ -1,4 +1,4 @@
-﻿using Domain.Identity.Entities;
+﻿using Domain.Data.Models.Identity;
 
 namespace Server.Controllers;
 

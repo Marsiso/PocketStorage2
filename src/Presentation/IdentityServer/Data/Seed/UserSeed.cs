@@ -1,7 +1,7 @@
 ﻿using Domain.Constants;
 using Domain.Data;
+using Domain.Data.Entities;
 using Domain.Helpers;
-using Domain.Identity.Entities;
 using LanguageExt.Common;
 using Microsoft.AspNetCore.Identity;
 using System.Collections.ObjectModel;
@@ -17,7 +17,7 @@ public sealed class UserSeed : IHostedService
 
     #endregion Private Fields
 
-    private record UserWithRoles(ApplicationUser Value, string Password, IReadOnlyCollection<ApplicationRole> Roles);
+    private record UserWithRoles(ApplicationUserEntity Value, string Password, IReadOnlyCollection<ApplicationRoleEntity> Roles);
 
     #region Private Methods
 
@@ -26,14 +26,13 @@ public sealed class UserSeed : IHostedService
         return new Collection<UserWithRoles>()
         {
             new(
-                Value: new ApplicationUser
+                Value: new ApplicationUserEntity
                 {
                     Email = "system.admin@provider.dev",
                     UserName = "system.admin@provider.dev",
-                    FirstName = "System",
-                    MiddleName = "Administrator",
-                    LastName = "User",
-                    Alias = "SysAdmin",
+                    GivenName = "System",
+                    OtherName = "Administrator",
+                    FamilyName = "User",
                     EmailConfirmed = true,
                     IsActive = true
                 },
@@ -41,14 +40,13 @@ public sealed class UserSeed : IHostedService
                 Roles: ApplicationConstants.Roles.SystemAdministrator.GetSubRoles()
             ),
             new (
-                Value: new ApplicationUser
+                Value: new ApplicationUserEntity
                 {
                     Email = "tenant.admin@provider.dev",
                     UserName = "tenant.admin@provider.dev",
-                    FirstName = "Tenant",
-                    MiddleName = "Administrator",
-                    LastName = "User",
-                    Alias = "TenantAdmin",
+                    GivenName = "Tenant",
+                    OtherName = "Administrator",
+                    FamilyName = "User",
                     EmailConfirmed = true,
                     IsActive = true
                 },
@@ -56,13 +54,13 @@ public sealed class UserSeed : IHostedService
                 Roles: ApplicationConstants.Roles.TenantAdministrator.GetSubRoles()
             ),
             new(
-                Value: new ApplicationUser
+                Value: new ApplicationUserEntity
                 {
                     Email = "default.access@provider.dev",
                     UserName = "default.access@provider.dev",
-                    FirstName = "Default",
-                    LastName = "Access",
-                    Alias = "DefaultAccess",
+                    GivenName = "Default",
+                    OtherName = "Access",
+                    FamilyName = "User",
                     EmailConfirmed = true,
                     IsActive = true
                 },
@@ -72,55 +70,25 @@ public sealed class UserSeed : IHostedService
         };
     }
 
-    private async Task SeedUserAsync(
-        UserManager<ApplicationUser> userManager,
-        RoleManager<ApplicationRole> roleManager,
-        UserWithRoles user)
+    private async Task SeedAsync(
+        UserManager<ApplicationUserEntity> userManager,
+        RoleManager<ApplicationRoleEntity> roleManager)
     {
-        Result<ApplicationUser> result = await user.Value.TryCreateAsync(userManager, user.Password);
-        ApplicationUser userEntity = result.Match(
-            appUser =>
-            {
-                string message = $"User with ID {appUser.Id} and email adress {appUser.Email} has been successfully created.";
-                _logger.LogInformation(message);
-
-                return appUser;
-            },
-            exception =>
-            {
-                _logger.LogError(exception.Message);
-                return default!;
-            });
-
-        if (userEntity != null)
+        foreach (var user in GetUsersWithRoles())
         {
-            result = await userEntity.TryAssignRolesAsync(
-                userManager,
-                roleManager,
-                user.Roles);
-            _ = result.Match(
-                appUser =>
-                {
-                    string message = $"User with ID {appUser.Id} and email adress {appUser.Email} has been successfully assigned roles {string.Join(", ", user.Roles)}.";
-                    _logger.LogInformation(message);
-
-                    return appUser;
-                }, exception =>
-                {
-                    _logger.LogError(exception.Message);
-                    return default!;
-                });
+            await SeedRolesAsync(roleManager, user);
+            await SeedUserAsync(userManager, roleManager, user);
         }
     }
 
     private async Task SeedRolesAsync(
-        RoleManager<ApplicationRole> roleManager,
+        RoleManager<ApplicationRoleEntity> roleManager,
         UserWithRoles user)
     {
         foreach (var role in user.Roles)
         {
-            Result<ApplicationRole> result = await role.TryCreateAsync(roleManager);
-            ApplicationRole roleEntity = result.Match(appRole =>
+            Result<ApplicationRoleEntity> result = await role.TryCreateAsync(roleManager);
+            ApplicationRoleEntity roleEntity = result.Match(appRole =>
             {
                 string message = $"Role {appRole.Name} with ID {appRole.Id} has been successfully created.";
                 _logger.LogInformation(message);
@@ -147,14 +115,44 @@ public sealed class UserSeed : IHostedService
         }
     }
 
-    private async Task SeedAsync(
-        UserManager<ApplicationUser> userManager,
-        RoleManager<ApplicationRole> roleManager)
+    private async Task SeedUserAsync(
+                UserManager<ApplicationUserEntity> userManager,
+        RoleManager<ApplicationRoleEntity> roleManager,
+        UserWithRoles user)
     {
-        foreach (var user in GetUsersWithRoles())
+        Result<ApplicationUserEntity> result = await user.Value.TryCreateAsync(userManager, user.Password);
+        ApplicationUserEntity userEntity = result.Match(
+            appUser =>
+            {
+                string message = $"User with ID {appUser.Id} and email address {appUser.Email} has been successfully created.";
+                _logger.LogInformation(message);
+
+                return appUser;
+            },
+            exception =>
+            {
+                _logger.LogError(exception.Message);
+                return default!;
+            });
+
+        if (userEntity != null)
         {
-            await SeedRolesAsync(roleManager, user);
-            await SeedUserAsync(userManager, roleManager, user);
+            result = await userEntity.TryAssignRolesAsync(
+                userManager,
+                roleManager,
+                user.Roles);
+            _ = result.Match(
+                appUser =>
+                {
+                    string message = $"User with ID {appUser.Id} and email address {appUser.Email} has been successfully assigned roles {string.Join(", ", user.Roles)}.";
+                    _logger.LogInformation(message);
+
+                    return appUser;
+                }, exception =>
+                {
+                    _logger.LogError(exception.Message);
+                    return default!;
+                });
         }
     }
 
@@ -174,27 +172,31 @@ public sealed class UserSeed : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await using (var scope = _serviceProvider.CreateAsyncScope())
+        await using var scope = _serviceProvider.CreateAsyncScope();
+        ApplicationDbContext? context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        if (context == null)
         {
-            var context = scope.ServiceProvider.GetRequiredService<ApplicationDatabaseContext>();
-            await context.Database.EnsureCreatedAsync();
-
-            UserManager<ApplicationUser>? userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            if (userManager == null)
-            {
-                string errorMessage = $"User Manager cannot be a null reference object. Parameter: {nameof(userManager)} Value: {userManager}";
-                throw new ArgumentNullException(nameof(userManager), errorMessage);
-            }
-
-            RoleManager<ApplicationRole>? roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-            if (roleManager == null)
-            {
-                string errorMessage = $"User Manager cannot be a null object. Parameter: {nameof(roleManager)} Value: {roleManager}";
-                throw new ArgumentNullException(nameof(roleManager), errorMessage);
-            }
-
-            await SeedAsync(userManager, roleManager);
+            string errorMessage = $"[{nameof(UserSeed)}] Null reference exception. Parameter: '{nameof(context)}' Value: '{context}'";
+            throw new NullReferenceException(errorMessage);
         }
+
+        await context.Database.EnsureCreatedAsync();
+
+        UserManager<ApplicationUserEntity>? userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUserEntity>>();
+        if (userManager == null)
+        {
+            string errorMessage = $"[{nameof(UserSeed)}] Null reference exception. Parameter: '{nameof(userManager)}' Value: '{userManager}'";
+            throw new NullReferenceException(errorMessage);
+        }
+
+        RoleManager<ApplicationRoleEntity>? roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRoleEntity>>();
+        if (roleManager == null)
+        {
+            string errorMessage = $"[{nameof(UserSeed)}] Null reference exception. Parameter: '{nameof(roleManager)}' Value: '{roleManager}'";
+            throw new NullReferenceException(errorMessage);
+        }
+
+        await SeedAsync(userManager, roleManager);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

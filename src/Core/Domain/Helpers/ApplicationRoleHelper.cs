@@ -1,12 +1,14 @@
 ﻿using Domain.Constants;
-using Domain.Identity.Entities;
+using Domain.Data.Entities;
 using System.Collections.ObjectModel;
 
 namespace Domain.Helpers;
 
 public static class ApplicationRoleHelper
 {
-    public static IReadOnlyCollection<string> GetRolePermissions(this ApplicationRole role)
+    #region Public Methods
+
+    public static IReadOnlyCollection<string> GetRolePermissions(this ApplicationRoleEntity role)
     {
         return role.Name switch
         {
@@ -31,57 +33,58 @@ public static class ApplicationRoleHelper
         };
     }
 
-    public static IReadOnlyCollection<ApplicationRole> GetSubRoles(this string roleName)
+    public static IReadOnlyCollection<ApplicationRoleEntity> GetSubRoles(this string roleName)
     {
         return roleName switch
         {
-            ApplicationConstants.Roles.SystemAdministrator => new Collection<ApplicationRole>()
+            ApplicationConstants.Roles.SystemAdministrator => new Collection<ApplicationRoleEntity>()
                 {
-
-                    new ApplicationRole
+                    new ApplicationRoleEntity
                     {
                         Name = ApplicationConstants.Roles.SystemAdministrator,
                         Description = ApplicationConstants.Descriptions.SystemAdministrator,
                         IsActive = true
                     },
-                    new ApplicationRole
+                    new ApplicationRoleEntity
                     {
                         Name = ApplicationConstants.Roles.TenantAdministrator,
                         Description = ApplicationConstants.Descriptions.TenantAdministrator,
                         IsActive = true
                     },
-                    new ApplicationRole
+                    new ApplicationRoleEntity
                     {
                         Name = ApplicationConstants.Roles.DefaultAccess,
                         Description = ApplicationConstants.Descriptions.DefaultAccess,
                         IsActive = true
                     }
                 },
-            ApplicationConstants.Roles.TenantAdministrator => new Collection<ApplicationRole>()
+            ApplicationConstants.Roles.TenantAdministrator => new Collection<ApplicationRoleEntity>()
                 {
-                    new ApplicationRole
+                    new ApplicationRoleEntity
                     {
                         Name = ApplicationConstants.Roles.TenantAdministrator,
                         Description = ApplicationConstants.Descriptions.TenantAdministrator,
                         IsActive = true
                     },
-                    new ApplicationRole
+                    new ApplicationRoleEntity
                     {
                         Name = ApplicationConstants.Roles.DefaultAccess,
                         Description = ApplicationConstants.Descriptions.DefaultAccess,
                         IsActive = true
                     }
                 },
-            ApplicationConstants.Roles.DefaultAccess => new Collection<ApplicationRole>()
+            ApplicationConstants.Roles.DefaultAccess => new Collection<ApplicationRoleEntity>()
                 {
-                    new ApplicationRole
+                    new ApplicationRoleEntity
                     {
                         Name = ApplicationConstants.Roles.DefaultAccess,
                         Description = ApplicationConstants.Descriptions.DefaultAccess,
                         IsActive = true
                     }
                 },
-            _ => new Collection<ApplicationRole>()
+            _ => new Collection<ApplicationRoleEntity>()
         };
     }
+
+    #endregion Public Methods
 }

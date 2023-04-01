@@ -23,8 +23,7 @@ public sealed class AntiforgeryHttpClientFactory : IAntiforgeryHttpClientFactory
 
     public async Task<HttpClient> CreateClientAsync(string clientName = AuthorizationDefaults.AuthorizedClientName)
     {
-        var token = await _jSRuntime.InvokeAsync<string>("getAntiForgeryToken");
-
+        string? token = await _jSRuntime.InvokeAsync<string>("getAntiForgeryToken");
         var client = _httpClientFactory.CreateClient(clientName);
         client.DefaultRequestHeaders.Add(AntiforgeryDefaults.HeaderName, token);
 

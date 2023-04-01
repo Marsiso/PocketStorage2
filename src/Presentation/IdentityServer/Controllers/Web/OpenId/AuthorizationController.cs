@@ -1,4 +1,4 @@
-﻿using Domain.Identity.Entities;
+﻿using Domain.Data.Entities;
 using IdentityServer.Controllers.Web.Base;
 using IdentityServer.Extensions;
 using IdentityServer.Filters;
@@ -25,8 +25,8 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
     private readonly IOpenIddictApplicationManager _applicationManager;
     private readonly IOpenIddictAuthorizationManager _authorizationManager;
     private readonly IOpenIddictScopeManager _scopeManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUserEntity> _signInManager;
+    private readonly UserManager<ApplicationUserEntity> _userManager;
 
     #endregion Private Fields
 
@@ -87,11 +87,11 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
     #region Public Constructors
 
     public AuthorizationController(
-            IOpenIddictApplicationManager applicationManager,
+        IOpenIddictApplicationManager applicationManager,
         IOpenIddictAuthorizationManager authorizationManager,
         IOpenIddictScopeManager scopeManager,
-        SignInManager<ApplicationUser> signInManager,
-        UserManager<ApplicationUser> userManager)
+        SignInManager<ApplicationUserEntity> signInManager,
+        UserManager<ApplicationUserEntity> userManager)
     {
         _applicationManager = applicationManager;
         _authorizationManager = authorizationManager;
@@ -108,13 +108,13 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
     [HttpPost("~/connect/authorize"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Accept()
     {
-        var request = HttpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved");
+        var request = HttpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
         // Retrieve the profile of the logged in user
-        var user = await _userManager.GetUserAsync(User) ?? throw new InvalidOperationException("The user details cannot be retrieved");
+        var user = await _userManager.GetUserAsync(User) ?? throw new InvalidOperationException("The user details cannot be retrieved.");
 
         // Retrieve the application details from the database
-        var application = await _applicationManager.FindByClientIdAsync(request.ClientId ?? "") ?? throw new InvalidOperationException("Details concerning the calling client application");
+        var application = await _applicationManager.FindByClientIdAsync(request.ClientId ?? "") ?? throw new InvalidOperationException("Details concerning the calling client application.");
 
         // Retrieve the permanent authorizations associated with the user and the calling client application
         var authorizations = await _authorizationManager.FindAsync(
@@ -134,7 +134,7 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
             properties: new AuthenticationProperties(new Dictionary<string, string?>
             {
                 [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.ConsentRequired,
-                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The logged in user is not allowed to access this client application"
+                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The logged in user is not allowed to access this client application."
             }));
         }
 
@@ -178,7 +178,7 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize()
     {
-        var request = HttpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved");
+        var request = HttpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
         var result = await HttpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
         // Try to retrieve the user principal stored in the authentication cookie and redirect the
         // user agent to the login page (or to an external provider) in the following cases:
@@ -215,15 +215,15 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
         }
 
         // Retrieve the profile of the logged in user
-        var user = await _userManager.GetUserAsync(result?.Principal!) ?? throw new InvalidOperationException("The user details cannot be retrieved");
+        var user = await _userManager.GetUserAsync(result?.Principal!) ?? throw new InvalidOperationException("The user details cannot be retrieved.");
 
         // Retrieve the application details from the database
-        var application = await _applicationManager.FindByClientIdAsync(request.ClientId ?? "") ?? throw new InvalidOperationException("Details concerning the calling client application cannot be found");
+        var application = await _applicationManager.FindByClientIdAsync(request.ClientId ?? string.Empty) ?? throw new InvalidOperationException("Details concerning the calling client application cannot be found.");
 
         // Retrieve the permanent authorizations associated with the user and the calling client application
         var authorizations = await _authorizationManager.FindAsync(
             subject: await _userManager.GetUserIdAsync(user),
-            client: await _applicationManager.GetClientIdAsync(application) ?? "",
+            client: await _applicationManager.GetClientIdAsync(application) ?? string.Empty,
             status: Statuses.Valid, type: AuthorizationTypes.Permanent,
             scopes: request.GetScopes()).ToListAsync();
 
@@ -237,7 +237,7 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
                     properties: new AuthenticationProperties(new Dictionary<string, string?>
                     {
                         [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.ConsentRequired,
-                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The logged in user is not allowed to access this client application"
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The logged in user is not allowed to access this client application."
                     }));
 
             // If the consent is implicit or if an authorization was found return an authorization
@@ -287,7 +287,7 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
                     properties: new AuthenticationProperties(new Dictionary<string, string?>
                     {
                         [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.ConsentRequired,
-                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Interactive user consent is required"
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Interactive user consent is required."
                     }));
 
             // In every other case, render the consent form
@@ -310,7 +310,7 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
     [HttpPost("~/connect/token"), IgnoreAntiforgeryToken, Produces("application/json")]
     public async Task<IActionResult> Exchange()
     {
-        var request = HttpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved");
+        var request = HttpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
         if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())
         {
@@ -326,7 +326,7 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
                     properties: new AuthenticationProperties(new Dictionary<string, string?>
                     {
                         [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
-                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The token is no longer valid",
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The token is no longer valid.",
                     }));
             }
 
@@ -338,7 +338,7 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
                    properties: new AuthenticationProperties(new Dictionary<string, string?>
                    {
                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
-                       [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The user is no longer allowed to sign in",
+                       [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The user is no longer allowed to sign in.",
                    }));
             }
 
@@ -360,7 +360,7 @@ public sealed class AuthorizationController : BaseWebController<AuthorizationCon
             return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
-        throw new InvalidOperationException("The specified grant type is not supported");
+        throw new InvalidOperationException("The specified grant type is not supported.");
     }
 
     [HttpGet("~/connect/logout")]

@@ -1,5 +1,5 @@
-using Domain;
 using Domain.Constants;
+using Domain.Data.Dtos.Get;
 
 namespace Server.Controllers;
 
@@ -31,9 +31,9 @@ public sealed class WeatherForecastController : ControllerBase
     #region Public Methods
 
     [HttpGet("~/api/weatherForecast")]
-    public IEnumerable<WeatherForecast> Get()
+    public IEnumerable<WeatherForecastResource> Get()
     {
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+        return Enumerable.Range(1, 5).Select(index => new WeatherForecastResource
         {
             Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
             TemperatureC = Random.Shared.Next(-20, 55),

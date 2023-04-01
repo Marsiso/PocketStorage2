@@ -1,12 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
-// file to you under the MIT license.
-#nullable disable
-
-using Domain.Identity.Entities;
+﻿using Domain.Data.Entities;
+using IdentityServer.Data.Dtos.Post;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.ComponentModel.DataAnnotations;
 
 namespace IdentityServer.Areas.Identity.Pages.Account.Manage;
 
@@ -15,16 +11,16 @@ public sealed class DeletePersonalDataModel : PageModel
     #region Private Fields
 
     private readonly ILogger<DeletePersonalDataModel> _logger;
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUserEntity> _signInManager;
+    private readonly UserManager<ApplicationUserEntity> _userManager;
 
     #endregion Private Fields
 
     #region Public Constructors
 
     public DeletePersonalDataModel(
-        UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager,
+        UserManager<ApplicationUserEntity> userManager,
+        SignInManager<ApplicationUserEntity> signInManager,
         ILogger<DeletePersonalDataModel> logger)
     {
         _userManager = userManager;
@@ -36,17 +32,9 @@ public sealed class DeletePersonalDataModel : PageModel
 
     #region Public Properties
 
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     [BindProperty]
-    public InputModel Input { get; set; }
+    public PasswordInput Input { get; set; } = default!;
 
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     public bool RequirePassword { get; set; }
 
     #endregion Public Properties
@@ -55,7 +43,7 @@ public sealed class DeletePersonalDataModel : PageModel
 
     public async Task<IActionResult> OnGet()
     {
-        var user = await _userManager.GetUserAsync(User);
+        ApplicationUserEntity? user = await _userManager.GetUserAsync(User);
         if (user == null)
         {
             return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
@@ -67,7 +55,7 @@ public sealed class DeletePersonalDataModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        var user = await _userManager.GetUserAsync(User);
+        ApplicationUserEntity? user = await _userManager.GetUserAsync(User);
         if (user == null)
         {
             return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
@@ -83,8 +71,8 @@ public sealed class DeletePersonalDataModel : PageModel
             }
         }
 
-        var result = await _userManager.DeleteAsync(user);
-        var userId = await _userManager.GetUserIdAsync(user);
+        IdentityResult result = await _userManager.DeleteAsync(user);
+        string userId = await _userManager.GetUserIdAsync(user);
         if (!result.Succeeded)
         {
             throw new InvalidOperationException($"Unexpected error occurred deleting user.");
@@ -98,27 +86,4 @@ public sealed class DeletePersonalDataModel : PageModel
     }
 
     #endregion Public Methods
-
-    #region Public Classes
-
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public class InputModel
-    {
-        #region Public Properties
-
-        /// <summary>
-        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
-        /// intended to be used directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [Required]
-        [DataType(DataType.Password)]
-        public string Password { get; set; }
-
-        #endregion Public Properties
-    }
-
-    #endregion Public Classes
 }

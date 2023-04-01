@@ -1,12 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
-// file to you under the MIT license.
-#nullable disable
-
-using Domain.Identity.Entities;
+﻿using Domain.Data.Entities;
+using IdentityServer.Data.Dtos.Post;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -20,7 +16,7 @@ public sealed class EnableAuthenticatorModel : PageModel
     private const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
     private readonly ILogger<EnableAuthenticatorModel> _logger;
     private readonly UrlEncoder _urlEncoder;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly UserManager<ApplicationUserEntity> _userManager;
 
     #endregion Private Fields
 
@@ -53,19 +49,21 @@ public sealed class EnableAuthenticatorModel : PageModel
             unformattedKey);
     }
 
-    private async Task LoadSharedKeyAndQrCodeUriAsync(ApplicationUser user)
+    private async Task LoadSharedKeyAndQrCodeUriAsync(ApplicationUserEntity user)
     {
         // Load the authenticator key & QR code URI to display on the form
-        var unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
+        string? unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
         if (string.IsNullOrEmpty(unformattedKey))
         {
             await _userManager.ResetAuthenticatorKeyAsync(user);
             unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
         }
 
+        unformattedKey ??= string.Empty;
         SharedKey = FormatKey(unformattedKey);
 
-        var email = await _userManager.GetEmailAsync(user);
+        string? email = await _userManager.GetEmailAsync(user);
+        email ??= string.Empty;
         AuthenticatorUri = GenerateQrCodeUri(email, unformattedKey);
     }
 
@@ -74,7 +72,7 @@ public sealed class EnableAuthenticatorModel : PageModel
     #region Public Constructors
 
     public EnableAuthenticatorModel(
-                    UserManager<ApplicationUser> userManager,
+                    UserManager<ApplicationUserEntity> userManager,
         ILogger<EnableAuthenticatorModel> logger,
         UrlEncoder urlEncoder)
     {
@@ -87,38 +85,18 @@ public sealed class EnableAuthenticatorModel : PageModel
 
     #region Public Properties
 
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public string AuthenticatorUri { get; set; }
+    public string AuthenticatorUri { get; set; } = default!;
 
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     [BindProperty]
-    public InputModel Input { get; set; }
+    public EnableAuthenticatorInput Input { get; set; } = default!;
 
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     [TempData]
-    public string[] RecoveryCodes { get; set; }
+    public string[]? RecoveryCodes { get; set; }
 
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public string SharedKey { get; set; }
+    public string SharedKey { get; set; } = default!;
 
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     [TempData]
-    public string StatusMessage { get; set; }
+    public string? StatusMessage { get; set; }
 
     #endregion Public Properties
 
@@ -126,7 +104,7 @@ public sealed class EnableAuthenticatorModel : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        var user = await _userManager.GetUserAsync(User);
+        ApplicationUserEntity? user = await _userManager.GetUserAsync(User);
         if (user == null)
         {
             return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
@@ -139,7 +117,7 @@ public sealed class EnableAuthenticatorModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        var user = await _userManager.GetUserAsync(User);
+        ApplicationUserEntity? user = await _userManager.GetUserAsync(User);
         if (user == null)
         {
             return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
@@ -152,9 +130,9 @@ public sealed class EnableAuthenticatorModel : PageModel
         }
 
         // Strip spaces and hyphens
-        var verificationCode = Input.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
+        string verificationCode = Input.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
 
-        var is2faTokenValid = await _userManager.VerifyTwoFactorTokenAsync(
+        bool is2faTokenValid = await _userManager.VerifyTwoFactorTokenAsync(
             user, _userManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
 
         if (!is2faTokenValid)
@@ -172,40 +150,15 @@ public sealed class EnableAuthenticatorModel : PageModel
 
         if (await _userManager.CountRecoveryCodesAsync(user) == 0)
         {
-            var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-            RecoveryCodes = recoveryCodes.ToArray();
-            return RedirectToPage("./ShowRecoveryCodes");
+            IEnumerable<string>? recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+            RecoveryCodes = recoveryCodes?.ToArray();
+            return RedirectToPage("./showRecoveryCodes");
         }
         else
         {
-            return RedirectToPage("./TwoFactorAuthentication");
+            return RedirectToPage("./twoFactorAuthentication");
         }
     }
 
     #endregion Public Methods
-
-    #region Public Classes
-
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public class InputModel
-    {
-        #region Public Properties
-
-        /// <summary>
-        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
-        /// intended to be used directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [Required]
-        [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Text)]
-        [Display(Name = "Verification Code")]
-        public string Code { get; set; }
-
-        #endregion Public Properties
-    }
-
-    #endregion Public Classes
 }

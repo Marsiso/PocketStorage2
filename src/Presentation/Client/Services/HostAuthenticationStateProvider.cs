@@ -23,16 +23,16 @@ public sealed class HostAuthenticationStateProvider : AuthenticationStateProvide
 
     private async Task<ClaimsPrincipal> FetchUser()
     {
-        ApplicationUserInfo? user = null;
+        ApplicationUserInfo? user = default;
 
         try
         {
             _logger.LogInformation("{clientBaseAddress}", _client.BaseAddress?.ToString());
             user = await _client.GetFromJsonAsync<ApplicationUserInfo>("api/user");
         }
-        catch (Exception exc)
+        catch (Exception exception)
         {
-            _logger.LogWarning(exc, "Fetching user failed.");
+            _logger.LogWarning(exception, $"[{nameof(HostAuthenticationStateProvider)}] Fetch user failure.");
         }
 
         if (user == null || !user.IsAuthenticated)
@@ -40,14 +40,14 @@ public sealed class HostAuthenticationStateProvider : AuthenticationStateProvide
             return new ClaimsPrincipal(new ClaimsIdentity());
         }
 
-        var identity = new ClaimsIdentity(
+        ClaimsIdentity identity = new ClaimsIdentity(
             nameof(HostAuthenticationStateProvider),
             user.NameClaimType,
             user.RoleClaimType);
 
         if (user.Claims != null)
         {
-            identity.AddClaims(user.Claims.Select(c => new Claim(c.Type, c.Value)));
+            identity.AddClaims(user.Claims.Select(claimValue => new Claim(claimValue.Type, claimValue.Value)));
         }
 
         return new ClaimsPrincipal(identity);
@@ -55,16 +55,16 @@ public sealed class HostAuthenticationStateProvider : AuthenticationStateProvide
 
     private async ValueTask<ClaimsPrincipal> GetUser(bool useCache = false)
     {
-        var now = DateTimeOffset.Now;
-        if (useCache && now < _userLastCheck + _userCacheRefreshInterval)
+        DateTimeOffset dateTimeOffset = DateTimeOffset.Now;
+        if (useCache && dateTimeOffset < _userLastCheck + _userCacheRefreshInterval)
         {
-            _logger.LogDebug("Taking user from cache");
+            _logger.LogDebug($"[{nameof(HostAuthenticationStateProvider)}] Retrieving user from cache.");
             return _cachedUser;
         }
 
-        _logger.LogDebug("Fetching user");
+        _logger.LogDebug($"[{nameof(HostAuthenticationStateProvider)}] Fetching user.");
         _cachedUser = await FetchUser();
-        _userLastCheck = now;
+        _userLastCheck = dateTimeOffset;
 
         return _cachedUser;
     }
@@ -91,7 +91,7 @@ public sealed class HostAuthenticationStateProvider : AuthenticationStateProvide
     {
         var returnUrl = customReturnUrl != null ? _navigation.ToAbsoluteUri(customReturnUrl).ToString() : null;
         var encodedReturnUrl = Uri.EscapeDataString(returnUrl ?? _navigation.Uri);
-        var logInUrl = _navigation.ToAbsoluteUri($"{AuthorizationDefaults.LogInPath}?returnUrl={encodedReturnUrl}");
+        Uri logInUrl = _navigation.ToAbsoluteUri($"{AuthorizationDefaults.LogInPath}?returnUrl={encodedReturnUrl}");
         _navigation.NavigateTo(logInUrl.ToString(), true);
     }
 

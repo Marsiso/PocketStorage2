@@ -24,24 +24,19 @@
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Input.Alias" class="form-control" autocomplete="nickname" aria-required="true" placeholder="Please enter your alias" />
-                <label asp-for="Input.Alias">Alias</label>
-                <span asp-validation-for="Input.Alias" class="text-danger"></span>
+                <input asp-for="Input.GivenName" class="form-control" autocomplete="given-name" aria-required="true" placeholder="Please enter your given name" />
+                <label asp-for="Input.GivenName">Given Name</label>
+                <span asp-validation-for="Input.GivenName" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Input.FirstName" class="form-control" autocomplete="given-name" aria-required="true" placeholder="Please enter your given name" />
-                <label asp-for="Input.FirstName">Given Name</label>
-                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                <input asp-for="Input.OtherName" class="form-control" autocomplete="additional-name" aria-required="true" placeholder="Please enter your additional name" />
+                <label asp-for="Input.OtherName">Middle Name</label>
+                <span asp-validation-for="Input.OtherName" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Input.MiddleName" class="form-control" autocomplete="additional-name" aria-required="true" placeholder="Please enter your additional name" />
-                <label asp-for="Input.MiddleName">Middle Name</label>
-                <span asp-validation-for="Input.MiddleName" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.LastName" class="form-control" autocomplete="family-name" aria-required="true" placeholder="Please enter your family name" />
-                <label asp-for="Input.LastName">Family Name</label>
-                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                <input asp-for="Input.FamilyName" class="form-control" autocomplete="family-name" aria-required="true" placeholder="Please enter your family name" />
+                <label asp-for="Input.FamilyName">Family Name</label>
+                <span asp-validation-for="Input.FamilyName" class="text-danger"></span>
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </form>

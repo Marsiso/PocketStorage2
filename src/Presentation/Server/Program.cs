@@ -1,27 +1,28 @@
 using Server.Helpers;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 IServiceCollection services = builder.Services;
 ConfigurationManager configuration = builder.Configuration;
 IWebHostEnvironment environment = builder.Environment;
-IConfigurationSection openIDConnectSettings = builder.Configuration.GetSection("OpenIDConnectSettings");
+IConfigurationSection openIDConnectSettings = builder.Configuration.GetSection("OpenIdConnectSettings");
 
-services.AddAntiforgery(options => options.Configure());
-services.AddHttpClient();
-services.AddOptions();
-services.AddAuthentication(options => options.Configure())
-        .AddCookie()
-        .AddOpenIdConnect(options => options.Configure(
-            configuration["OpenIDConnectConfiguration:Authority"]!,
-            configuration["OpenIDConnectConfiguration:ClientID"]!,
-            configuration["OpenIDConnectConfiguration:ClientSecret"]!));
+services
+    .AddApplicationAntiforgery()
+    .AddHttpClient()
+    .AddOptions()
+    .AddApplicationAuthentication()
+    .AddCookie()
+    .AddApplicationOpenIdConnect(builder.Configuration);
 
-services.AddControllersWithViews(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
-services.AddRazorPages()
-        .AddMvcOptions(options => options.Configure());
+services
+    .AddControllersWithViews(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
 
-var app = builder.Build();
+services
+    .AddRazorPages()
+    .AddMvcOptions(options => options.Configure());
+
+WebApplication app = builder.Build();
 
 if (environment.IsDevelopment())
 {
@@ -33,20 +34,22 @@ else
     app.UseExceptionHandler("/Error");
 }
 
-app.UseSecurityHeaders(SecurityHeadersHelper.GetHeaderPolicyCollection(
-    environment.IsDevelopment(),
-    configuration["OpenIDConnectConfiguration:Authority"]!));
+app.UseSecurityHeaders(SecurityHeadersHelper.GetHeaderPolicyCollection(app));
+app
+    .UseHttpsRedirection()
+    .UseBlazorFrameworkFiles()
+    .UseStaticFiles()
+    .UseRouting()
+    .UseNoUnauthorizedRedirect("/api")
+    .UseAuthentication()
+    .UseAuthorization();
 
-app.UseHttpsRedirection();
-app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
-app.UseRouting();
-app.UseNoUnauthorizedRedirect("/api");
-app.UseAuthentication();
-app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
-app.MapNotFound("/api/{**segment}");
-app.MapUnauthorized("/api/{**segment}");
-app.MapFallbackToPage("/_Host");
+
+app
+    .MapNotFound("/api/{**segment}")
+    .MapUnauthorized("/api/{**segment}")
+    .MapFallbackToPage("/_Host");
+
 app.Run();

@@ -1,13 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
-// file to you under the MIT license.
-#nullable disable
-
-using Domain.Identity.Entities;
+﻿using Domain.Data.Entities;
+using IdentityServer.Data.Dtos.Post;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace IdentityServer.Areas.Identity.Pages.Account;
@@ -16,13 +12,13 @@ public sealed class ResetPasswordModel : PageModel
 {
     #region Private Fields
 
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly UserManager<ApplicationUserEntity> _userManager;
 
     #endregion Private Fields
 
     #region Public Constructors
 
-    public ResetPasswordModel(UserManager<ApplicationUser> userManager)
+    public ResetPasswordModel(UserManager<ApplicationUserEntity> userManager)
     {
         _userManager = userManager;
     }
@@ -31,18 +27,14 @@ public sealed class ResetPasswordModel : PageModel
 
     #region Public Properties
 
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     [BindProperty]
-    public InputModel Input { get; set; }
+    public ResetPasswordInput Input { get; set; } = default!;
 
     #endregion Public Properties
 
     #region Public Methods
 
-    public IActionResult OnGet(string code = null)
+    public IActionResult OnGet(string? code = null)
     {
         if (code == null)
         {
@@ -50,7 +42,7 @@ public sealed class ResetPasswordModel : PageModel
         }
         else
         {
-            Input = new InputModel
+            Input = new ResetPasswordInput
             {
                 Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code))
             };
@@ -65,73 +57,26 @@ public sealed class ResetPasswordModel : PageModel
             return Page();
         }
 
-        var user = await _userManager.FindByEmailAsync(Input.Email);
+        ApplicationUserEntity? user = await _userManager.FindByEmailAsync(Input.Email);
         if (user == null)
         {
             // Don't reveal that the user does not exist
-            return RedirectToPage("./ResetPasswordConfirmation");
+            return RedirectToPage("./resetPasswordConfirmation");
         }
 
-        var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
+        IdentityResult result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
         if (result.Succeeded)
         {
-            return RedirectToPage("./ResetPasswordConfirmation");
+            return RedirectToPage("./resetPasswordConfirmation");
         }
 
         foreach (var error in result.Errors)
         {
             ModelState.AddModelError(string.Empty, error.Description);
         }
+
         return Page();
     }
 
     #endregion Public Methods
-
-    #region Public Classes
-
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public class InputModel
-    {
-        #region Public Properties
-
-        /// <summary>
-        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
-        /// intended to be used directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [Required]
-        public string Code { get; set; }
-
-        /// <summary>
-        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
-        /// intended to be used directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; }
-
-        /// <summary>
-        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
-        /// intended to be used directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-
-        /// <summary>
-        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
-        /// intended to be used directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        public string Password { get; set; }
-
-        #endregion Public Properties
-    }
-
-    #endregion Public Classes
 }

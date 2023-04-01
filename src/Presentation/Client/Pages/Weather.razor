@@ -1,5 +1,6 @@
 ﻿@page "/weatherForecast"
 @using Microsoft.AspNetCore.Authorization;
+@using Domain.Data.Dtos.Get;
 @inject IAntiforgeryHttpClientFactory httpClientFactory
 @inject IJSRuntime JSRuntime
 @attribute [Authorize(Roles = ApplicationConstants.Roles.SystemAdministrator)]
@@ -40,12 +41,12 @@ else
 }
 
 @code {
-    private WeatherForecast[]? forecasts;
+    private WeatherForecastResource[]? forecasts;
 
     protected override async Task OnInitializedAsync()
     {
         var client = await httpClientFactory.CreateClientAsync();
 
-        forecasts = await client.GetFromJsonAsync<WeatherForecast[]>("api/WeatherForecast");
+        forecasts = await client.GetFromJsonAsync<WeatherForecastResource[]>("api/WeatherForecast");
     }
 }

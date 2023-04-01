@@ -1,12 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this
-// file to you under the MIT license.
-#nullable disable
-
-using Domain.Identity.Entities;
+﻿using Domain.Data.Entities;
+using IdentityServer.Data.Dtos.Post;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.ComponentModel.DataAnnotations;
 
 namespace IdentityServer.Areas.Identity.Pages.Account;
 
@@ -15,16 +11,16 @@ public sealed class LoginWithRecoveryCodeModel : PageModel
     #region Private Fields
 
     private readonly ILogger<LoginWithRecoveryCodeModel> _logger;
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUserEntity> _signInManager;
+    private readonly UserManager<ApplicationUserEntity> _userManager;
 
     #endregion Private Fields
 
     #region Public Constructors
 
     public LoginWithRecoveryCodeModel(
-        SignInManager<ApplicationUser> signInManager,
-        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUserEntity> signInManager,
+        UserManager<ApplicationUserEntity> userManager,
         ILogger<LoginWithRecoveryCodeModel> logger)
     {
         _signInManager = signInManager;
@@ -36,65 +32,46 @@ public sealed class LoginWithRecoveryCodeModel : PageModel
 
     #region Public Properties
 
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     [BindProperty]
-    public InputModel Input { get; set; }
+    public LoginWithRecoveryCodeInput Input { get; set; } = default!;
 
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public string ReturnUrl { get; set; }
+    public string? ReturnUrl { get; set; }
 
     #endregion Public Properties
 
     #region Public Methods
 
-    public async Task<IActionResult> OnGetAsync(string returnUrl = null)
+    public async Task<IActionResult> OnGetAsync(string? returnUrl = null)
     {
-        // Ensure the user has gone through the username & password screen first
-        var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-        if (user == null)
-        {
-            throw new InvalidOperationException($"Unable to load two-factor authentication user.");
-        }
-
+        // Ensure the user has gone through the user name & password screen first
+        ApplicationUserEntity? user = await _signInManager.GetTwoFactorAuthenticationUserAsync() ?? throw new InvalidOperationException($"Unable to load two-factor authentication user.");
         ReturnUrl = returnUrl;
 
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+    public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
         if (!ModelState.IsValid)
         {
             return Page();
         }
 
-        var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-        if (user == null)
-        {
-            throw new InvalidOperationException($"Unable to load two-factor authentication user.");
-        }
+        ApplicationUserEntity? user = await _signInManager.GetTwoFactorAuthenticationUserAsync() ?? throw new InvalidOperationException($"Unable to load two-factor authentication user.");
+        string recoveryCode = Input.RecoveryCode.Replace(" ", string.Empty) ?? string.Empty;
 
-        var recoveryCode = Input.RecoveryCode.Replace(" ", string.Empty);
-
-        var result = await _signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
-
-        var userId = await _userManager.GetUserIdAsync(user);
+        Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
+        string userId = await _userManager.GetUserIdAsync(user);
 
         if (result.Succeeded)
         {
-            _logger.LogInformation("User with ID '{UserId}' logged in with a recovery code.", user.Id);
+            _logger.LogInformation($"User with ID '{userId}' logged in with a recovery code.", user.Id);
             return LocalRedirect(returnUrl ?? Url.Content("~/"));
         }
         if (result.IsLockedOut)
         {
             _logger.LogWarning("User account locked out.");
-            return RedirectToPage("./Lockout");
+            return RedirectToPage("./lockout");
         }
         else
         {
@@ -105,29 +82,4 @@ public sealed class LoginWithRecoveryCodeModel : PageModel
     }
 
     #endregion Public Methods
-
-    #region Public Classes
-
-    /// <summary>
-    /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to
-    /// be used directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public class InputModel
-    {
-        #region Public Properties
-
-        /// <summary>
-        /// This API supports the ASP.NET Core Identity default UI infrastructure and is not
-        /// intended to be used directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [BindProperty]
-        [Required]
-        [DataType(DataType.Text)]
-        [Display(Name = "Recovery Code")]
-        public string RecoveryCode { get; set; }
-
-        #endregion Public Properties
-    }
-
-    #endregion Public Classes
 }
