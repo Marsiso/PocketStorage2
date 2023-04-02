@@ -25,8 +25,9 @@ public static class SecurityHeadersHelper
                 builder.AddBlockAllMixedContent();
                 builder.AddImgSrc().Self().From("data:");
                 builder.AddFormAction().Self().From(identityProviderHost);
-                builder.AddFontSrc().Self();
-                builder.AddStyleSrc().Self();
+                // TODO
+                //builder.AddFontSrc().Self();
+                //builder.AddStyleSrc().Self();
                 builder.AddBaseUri().Self();
                 builder.AddFrameAncestors().None();
 

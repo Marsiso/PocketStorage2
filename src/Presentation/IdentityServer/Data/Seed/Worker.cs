@@ -30,12 +30,9 @@ public sealed class Worker : IHostedService
 
         #region BlazorWasm
 
-        string clientId = configuration["Clients:BlazorWebAssembly:Id"]
-            ?? throw new NullReferenceException($"[{nameof(Worker)}] Null reference exception. Variable: '{nameof(clientId)}' Value: '{null}'");
-        string clientSecret = configuration["Clients:BlazorWebAssembly:Secret"]
-            ?? throw new NullReferenceException($"[{nameof(Worker)}] Null reference exception. Variable: '{nameof(clientSecret)}' Value: '{null}'");
-        string clientDisplayName = configuration["Clients:BlazorWebAssembly:DisplayName"]
-            ?? throw new NullReferenceException($"[{nameof(Worker)}] Null reference exception. Variable: '{nameof(clientDisplayName)}' Value: '{null}'");
+        string clientId = configuration["Clients:BlazorWebAssembly:Id"] ?? string.Empty;
+        string clientSecret = configuration["Clients:BlazorWebAssembly:Secret"] ?? string.Empty;
+        string clientDisplayName = configuration["Clients:BlazorWebAssembly:DisplayName"] ?? string.Empty;
 
         if (await manager.FindByClientIdAsync(clientId) == null)
         {

@@ -99,3 +99,22 @@ a, .btn-link {
     .loading-progress-text:after {
         content: var(--blazor-load-percentage-text, "Loading");
     }
+
+html, body, #app {
+    height: 100%;
+    width: 100%;
+}
+
+#user-login-state {
+    position: absolute;
+    bottom: 16px;
+    width: 100%;
+}
+
+#main-sidebar-left {
+    background: linear-gradient(#4fc6db40, #ffffff) !important;
+}
+
+.e-appbar.e-light {
+    background: #ffffffff !important;
+}

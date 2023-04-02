@@ -84,6 +84,11 @@ public sealed class UserInfoController : BaseWebController<UserInfoController>
                     claims[Claims.Role] = await _userManager.GetRolesAsync(user);
                     break;
 
+                case Scopes.Profile:
+                    claims[Claims.GivenName] = user.GivenName;
+                    claims[Claims.FamilyName] = user.FamilyName;
+                    break;
+
                 default:
                     continue;
             }

@@ -1,4 +1,5 @@
 ﻿using Domain.Data.Models.Identity;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Server.Controllers;
 
@@ -36,13 +37,13 @@ public sealed class UserController : ControllerBase
             foreach (var claim in User.Claims)
             {
                 if (claim.Type.Equals(userInfo.NameClaimType, StringComparison.OrdinalIgnoreCase))
-                {
                     claims.Add(new ApplicationClaimValue(userInfo.NameClaimType, claim.Value));
-                }
                 else if (claim.Type.Equals(userInfo.RoleClaimType, StringComparison.OrdinalIgnoreCase))
-                {
                     claims.Add(new ApplicationClaimValue(userInfo.RoleClaimType, claim.Value));
-                }
+                else if (claim.Type.Equals(Claims.GivenName, StringComparison.OrdinalIgnoreCase))
+                    claims.Add(new ApplicationClaimValue(Claims.GivenName, claim.Value));
+                else if (claim.Type.Equals(Claims.FamilyName, StringComparison.OrdinalIgnoreCase))
+                    claims.Add(new ApplicationClaimValue(Claims.FamilyName, claim.Value));
             }
 
             userInfo.Claims = claims;

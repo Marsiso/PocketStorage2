@@ -4,7 +4,7 @@ using Domain.Data.Dtos.Get;
 namespace Server.Controllers;
 
 [ValidateAntiForgeryToken]
-[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = ApplicationConstants.Roles.SystemAdministrator)]
+[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = $"{ApplicationConstants.Roles.SystemAdministrator}, {ApplicationConstants.Roles.TenantAdministrator}")]
 [ApiController]
 public sealed class WeatherForecastController : ControllerBase
 {

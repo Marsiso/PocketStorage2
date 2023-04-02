@@ -210,5 +210,14 @@ public static class ApplicationConstants
         #endregion Public Fields
     }
 
+    public static class Syncfussion
+    {
+        #region Public Fields
+
+        public const string LicenseKey = "Mgo+DSMBaFt+QHFqVkFrXVNbdV5dVGpAd0N3RGlcdlR1fUUmHVdTRHRcQlljSH9XdkJjUHlXdHI=;Mgo+DSMBPh8sVXJ1S0d+X1ZPd11dXmJWd1p/THNYflR1fV9DaUwxOX1dQl9gSXpTd0RnWXheeXNURmY=;NRAiBiAaIQQuGjN/V0d+XU9HcVRDX3xKf0x/TGpQb19xflBPallYVBYiSV9jS31TckViWHted3RcQWJYVw==;Mgo+DSMBMAY9C3t2VFhhQlJDfV5AQmBIYVp/TGpJfl96cVxMZVVBJAtUQF1hSn5XdkRiXX9ZcH1SRWda;MTU4MjIxNkAzMjMxMmUzMTJlMzMzN2pPdFgrN0d4VkNMSEtqaEsyb21HbG5mZmJOUEluRGMxVitrWHVkSnFQZnM9;MTU4MjIxN0AzMjMxMmUzMTJlMzMzN09qMTVWL3NpSkNiSDUxcFBvcTQvSmdQeDdOLzNHUlQwenBJblEwN0NZbVE9";
+
+        #endregion Public Fields
+    }
+
     #endregion Public Classes
 }

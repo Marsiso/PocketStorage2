@@ -1,6 +1,8 @@
-﻿@page "/claims-principle-data"
+﻿@page "/userClaims"
 @using System.Security.Claims
 @inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>User Claims</PageTitle>
 
 <h1>ClaimsPrincipal Data</h1>
 
@@ -30,7 +32,7 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        if (user.Identity is not null && user.Identity.IsAuthenticated)
+        if (user.Identity != null && user.Identity.IsAuthenticated)
         {
             authMessage = $"{user.Identity.Name} is authenticated.";
             claims = user.Claims;

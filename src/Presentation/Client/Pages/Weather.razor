@@ -3,7 +3,7 @@
 @using Domain.Data.Dtos.Get;
 @inject IAntiforgeryHttpClientFactory httpClientFactory
 @inject IJSRuntime JSRuntime
-@attribute [Authorize(Roles = ApplicationConstants.Roles.SystemAdministrator)]
+@attribute [Authorize(Roles = $"{Roles.SystemAdministrator}, {Roles.TenantAdministrator}")]
 
 <PageTitle>Weather forecast</PageTitle>
 
@@ -47,6 +47,6 @@ else
     {
         var client = await httpClientFactory.CreateClientAsync();
 
-        forecasts = await client.GetFromJsonAsync<WeatherForecastResource[]>("api/WeatherForecast");
+        forecasts = await client.GetFromJsonAsync<WeatherForecastResource[]>("api/weatherForecast");
     }
 }

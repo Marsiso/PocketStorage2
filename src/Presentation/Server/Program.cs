@@ -49,7 +49,6 @@ app.MapControllers();
 
 app
     .MapNotFound("/api/{**segment}")
-    .MapUnauthorized("/api/{**segment}")
     .MapFallbackToPage("/_Host");
 
 app.Run();

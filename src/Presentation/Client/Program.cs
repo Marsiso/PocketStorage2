@@ -1,6 +1,9 @@
-var builder = WebAssemblyHostBuilder.CreateDefault(args);
+using Syncfusion.Blazor;
 
-var services = builder.Services;
+Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(ApplicationConstants.Syncfussion.LicenseKey);
+
+WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
+IServiceCollection services = builder.Services;
 
 services
     .AddOptions()
@@ -26,5 +29,7 @@ services.AddHttpClient(AuthorizationDefaults.AuthorizedClientName, client =>
 
 services.AddTransient(serviceProvider => serviceProvider.GetRequiredService<IHttpClientFactory>().CreateClient("default"));
 services.AddTransient<IAntiforgeryHttpClientFactory, AntiforgeryHttpClientFactory>();
+
+services.AddSyncfusionBlazor();
 
 await builder.Build().RunAsync();

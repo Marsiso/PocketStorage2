@@ -1,29 +1,97 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using static OpenIddict.Abstractions.OpenIddictConstants;
+@inject NavigationManager NavigationManager
 @inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <div class="main">
-        <div class="top-row px-4 auth">
-            <AuthorizeView>
-                <Authorized>
-                    <strong>Hello, @context?.User?.Identity?.Name!</strong>
-                    <form method="post" action="api/account/logout">
-                        <AntiForgeryTokenInput/>
-                        <button class="btn btn-link" type="submit">Sign out</button>
-                    </form>
-                </Authorized>
-                <NotAuthorized>
-                    <a href="api/account/login">Log in</a>
-                </NotAuthorized>
-            </AuthorizeView>
+<SfSidebar 
+    Width="240"
+    ID="main-sidebar-left"
+    Target=".e-main-content"
+    MediaQuery="(min-width:600px)"
+    IsOpen=SideBarToggle
+    Position="SidebarPosition.Left"
+    Type="SidebarType.Auto">
+    <ChildContent>
+        <div id="main-sidebar-left-content">
+            <ul class="list-unstyled">
+                <AuthorizeView>
+                    <Authorized>
+                        <li class="h6 text-start m-3">
+                            @{
+                                IEnumerable<Claim> claims = context.User.Claims;
+                                string givenName = claims.Single(claim => claim.Type.Equals(Claims.GivenName, StringComparison.OrdinalIgnoreCase)).Value;
+                                string familyName = claims.Single(claim => claim.Type.Equals(Claims.FamilyName, StringComparison.OrdinalIgnoreCase)).Value;
+                                @(string.Format("{0} {1}", givenName, familyName))
+                            }
+                        </li>
+                    </Authorized>
+                    <NotAuthorized>
+                        <li>
+                            <span class="fst-italic">Anonymous User</span>
+                        </li>
+                    </NotAuthorized>
+                </AuthorizeView>
+                <li>
+                    <SfButton CssClass="e-inherit w-100 text-start ps-4 pt-2 pb-2" Content="Home" IconCss="e-icons e-home" OnClick="@(() => NavigationManager.NavigateTo("/"))"></SfButton>
+                </li>
+                <AuthorizeView Roles="@($"{Roles.SystemAdministrator}, {Roles.TenantAdministrator}, {Roles.DefaultAccess}")">
+                    <Authorized>
+                        <li>
+                            <SfButton CssClass="e-inherit w-100 text-start ps-4 pt-2 pb-2" Content="My Files" IconCss="e-icons e-folder"></SfButton>
+                        </li>
+                        <li>
+                            <SfButton CssClass="e-inherit w-100 text-start ps-4 pt-2 pb-2" Content="Shared" IconCss="e-icons e-people"></SfButton>
+                        </li>
+                        <li>
+                            <SfButton CssClass="e-inherit w-100 text-start ps-4 pt-2 pb-2" Content="Recent" IconCss="e-icons e-clock"></SfButton>
+                        </li>
+                        <li>
+                            <SfButton CssClass="e-inherit w-100 text-start ps-4 pt-2 pb-2" Content="Bin" IconCss="e-icons e-trash"></SfButton>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
+                <AuthorizeView>
+                    <Authorized>
+                        <li id="user-login-state">
+                            <form method="post" action="api/account/logout">
+                                <AntiForgeryTokenInput />
+                                <SfButton CssClass="e-inherit w-100 text-start ps-4 pt-2 pb-2" Content="Logout" IconCss="e-icons e-user" type="submit"></SfButton>
+                            </form>
+                        </li>
+                    </Authorized>
+                    <NotAuthorized>
+                        <li id="user-login-state">
+                            <form method="get" action="api/account/login">
+                                <SfButton CssClass="e-inherit w-100 text-start ps-4 pt-2 pb-2" Content="Login" IconCss="e-icons e-user" type="submit"></SfButton>
+                            </form>
+                        </li>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </ul>
         </div>
+    </ChildContent>
+</SfSidebar>
 
-        <div class="content px-4">
-                @Body
-        </div>
-    </div>
-</div>
+<main>
+    <SfAppBar ColorMode="AppBarColor.Light" IsSticky=true>
+        <SfButton CssClass="e-inherit m-2" IconCss="e-icons e-menu" OnClick="@((_) => SideBarToggle = !SideBarToggle)"></SfButton>
+        <span class="regular fw-bold">Pocket Storage</span>
+
+        <AppBarSpacer></AppBarSpacer>
+        <AuthorizeView>
+            <Authorized>
+                <SfButton CssClass="e-inherit" IconCss="e-icons e-search" Content="Search"></SfButton>
+            </Authorized>
+        </AuthorizeView>
+    </SfAppBar>
+
+    <article class="main-content p-4">
+        @Body
+    </article>
+</main>
+
+@code {
+    public bool SideBarToggle { get; set; } = true;
+}
+
